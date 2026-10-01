@@ -1,0 +1,102 @@
+---
+title: "Inventory"
+description: "Runbook for quantities, bins, counts, average cost, and fulfillment allocations."
+---
+
+## Symptoms
+
+- On-hand quantity disagrees with bin allocations
+- Cannot ship / pick due to insufficient bin qty
+- Inventory count will not post
+- Average cost looks wrong after receipt or adjustment
+- Negative bin quantity blocked unexpectedly
+
+## Key tables
+
+| Table | Role |
+| --- | --- |
+| `items` | Item master, costing method, average cost |
+| `warehouses` / `warehouse_bins` | Locations |
+| `inventory_transactions` | Stock movements |
+| `inventory_transaction_allocations` | Bin-level allocations |
+| `inventory_transaction_docs` / `_doc_lines` | Adjustment documents |
+| `inventory_counts` / `inventory_count_lines` | Cycle counts |
+| `fulfillment_line_bin_allocations` | Pick allocations |
+| `item_cost_movements` | Average cost history |
+| `landed_cost_events` (+ component/allocation tables) | Landed cost |
+
+## Evidence queries
+
+```sql
+SELECT id, sku, name, costing_method, average_cost, standard_cost, inventory_value, active
+FROM items
+WHERE organization_id = :org_id
+  AND sku = :sku;
+```
+
+```sql
+SELECT id, movement_type, quantity, warehouse_id, unit_cost, source_type, source_id,
+       transaction_date, created_at, origin
+FROM inventory_transactions
+WHERE organization_id = :org_id
+  AND item_id = :item_id
+ORDER BY created_at DESC
+LIMIT 50;
+```
+
+```sql
+SELECT a.*
+FROM inventory_transaction_allocations a
+JOIN inventory_transactions t ON t.id = a.inventory_transaction_id
+WHERE t.organization_id = :org_id
+  AND t.item_id = :item_id
+ORDER BY a.created_at DESC
+LIMIT 50;
+```
+
+```sql
+SELECT id, status, warehouse_id, count_number, created_at
+FROM inventory_counts
+WHERE organization_id = :org_id
+ORDER BY created_at DESC
+LIMIT 20;
+```
+
+## Common causes
+
+| Cause | Signal | Direction |
+| --- | --- | --- |
+| Bins not initialized | `warehouses.bin_inventory_initialized_at` null | Initialize default bins |
+| Negative bins disallowed | `allow_negative_bin_qty = false` | Correct pick qty or move stock |
+| Inventory period closed | `inventory_open = false` | Reopen inventory module |
+| Short pick / zero lines | Fulfillment qty preserved rules | Review pick batch completion |
+| Average cost drift | Movements without cost | Trace `item_cost_movements` |
+| Voided fulfillment not reversing bins | Missing reversal allocations | Check void fulfillment path |
+
+## Remediation
+
+<Steps>
+  <Step title="Confirm warehouse bin settings">
+    `bin_locations_enabled`, default bin, negative qty policy.
+  </Step>
+  <Step title="Trace movements">
+    Use [inventory movement trace](/data-model/transaction-traces#inventory-movement).
+  </Step>
+  <Step title="Prefer inventory docs / count post RPCs">
+    Post counts and adjustments through product flows so GL + average cost stay aligned.
+  </Step>
+  <Step title="Fulfillment issues">
+    Inspect `fulfillment_line_bin_allocations` before creating manual inventory txns.
+  </Step>
+</Steps>
+
+## Escalate when
+
+- Need to rewrite historical average cost layers
+- Landed cost event partially posted
+- Opening inventory provenance conflicts (`origin` / uniqueness)
+
+## Related
+
+- [Inventory data model](/data-model/inventory)
+- [Orders and fulfillment tables](/data-model/orders-fulfillment)

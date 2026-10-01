@@ -1,0 +1,96 @@
+---
+title: "Accounts receivable"
+description: "Runbook for invoices, credits, AR payments, dunning, and order-sourced invoices."
+---
+
+## Symptoms
+
+- Invoice stuck in `draft` or will not post
+- Payment succeeds but invoice not `paid` / `closed`
+- Credit memo will not apply
+- Fulfillment shipped but no invoice (`invoice_status = pending_error`)
+- Dunning emails wrong or paused unexpectedly
+- Cart/Shopify order missing AR recognition
+
+## Key tables
+
+| Table | Role |
+| --- | --- |
+| `ar_customers` | Customer master |
+| `ar_invoices` / `ar_invoice_lines` | Invoices, credits, debits, write-offs |
+| `ar_payments` / `ar_payment_applications` | Incoming payments |
+| `ar_credit_applications` / `ar_debit_applications` / `ar_adjustment_applications` | Memo applications |
+| `ar_invoice_source_allocations` | Links invoice to source documents |
+| `ar_fulfillment_invoice_events` | Auto-invoice from fulfillment log |
+| `dunning_rules` / `dunning_log` | Collections automation |
+| `sales_orders` / `fulfillments` | Upstream commercial docs |
+
+`ar_invoices.status`: `draft` · `open` · `partially_paid` · `paid` · `credited` · `applied` · `closed` · `void`
+
+`ar_invoices.source`: `manual` · `recurring` · `sales_order` · `credit` · `fulfillment` · `consolidated`
+
+## Evidence queries
+
+```sql
+SELECT id, invoice_number, doc_type, status, customer_id, total, amount_paid,
+       amount_credited, balance_due, journal_entry_code, source, sales_order_id, shipment_id
+FROM ar_invoices
+WHERE organization_id = :org_id
+  AND invoice_number = :invoice_number;
+```
+
+```sql
+SELECT f.id, f.fulfillment_number, f.state, f.invoice_status, f.invoice_error, f.invoice_id,
+       f.sales_order_id, f.shipped_at
+FROM fulfillments f
+WHERE f.organization_id = :org_id
+  AND f.fulfillment_number = :fulfillment_number;
+```
+
+```sql
+SELECT p.id, p.payment_number, p.status, p.amount, p.method, p.sales_order_id,
+       a.invoice_id, a.amount AS applied_amount
+FROM ar_payments p
+LEFT JOIN ar_payment_applications a ON a.payment_id = p.id
+WHERE p.organization_id = :org_id
+  AND p.payment_number = :payment_number;
+```
+
+## Common causes
+
+| Cause | Signal | Direction |
+| --- | --- | --- |
+| Missing terms | Post blocked / required terms | Set `terms_code_id` on invoice/customer |
+| AR period closed | `ar_open = false` | Reopen AR module |
+| Fulfillment auto-invoice error | `fulfillments.invoice_error` | Fix mapping/dimensions; retry invoice creation |
+| Unapplied payment | Payment `succeeded`/`open` with no applications | Apply via AR payment UI/RPC |
+| Dunning paused | `dunning_paused = true` on invoice | Confirm intentional pause |
+| Cart prepaid recognition gap | Cart SO closed without invoice | See [integrations runbook](/troubleshooting/integrations) |
+
+## Remediation
+
+<Steps>
+  <Step title="Identify source">
+    Manual vs sales order vs fulfillment vs consolidated changes the repair path.
+  </Step>
+  <Step title="Trace order-to-cash">
+    Follow [AR order-to-cash](/data-model/transaction-traces#ar-order-to-cash).
+  </Step>
+  <Step title="Repair upstream first">
+    If fulfillment `invoice_status = pending_error`, fix fulfillment/order data before creating a manual invoice.
+  </Step>
+  <Step title="Apply or credit intentionally">
+    Use product payment/credit flows; do not overwrite `amount_paid` / `balance_due` directly.
+  </Step>
+</Steps>
+
+## Escalate when
+
+- Need dated reversal of applied payment across closed periods
+- Consolidated invoice allocations disagree with source orders
+- Write-off / adjustment applications look historically mutated
+
+## Related
+
+- [AR data model](/data-model/ar)
+- [Trackstar / Shopify](/integrations/trackstar-shopify)

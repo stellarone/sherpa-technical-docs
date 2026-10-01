@@ -1,0 +1,486 @@
+---
+title: "Platform and org"
+description: "Tenant, auth mapping, members, contacts, audit, and numbering."
+---
+
+Tenant, auth mapping, members, contacts, audit, and numbering.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`admin_nextnumbers`](#admin-nextnumbers) | 12 | 1 |
+| [`api_oauth_clients`](#api-oauth-clients) | 10 | 1 |
+| [`clerk_org_map`](#clerk-org-map) | 3 | 1 |
+| [`clerk_probe`](#clerk-probe) | 4 | 0 |
+| [`contact_links`](#contact-links) | 7 | 3 |
+| [`contacts`](#contacts) | 8 | 0 |
+| [`data_audit_events`](#data-audit-events) | 11 | 1 |
+| [`data_audit_registry`](#data-audit-registry) | 2 | 0 |
+| [`email_send_log`](#email-send-log) | 10 | 1 |
+| [`employee_status_history`](#employee-status-history) | 7 | 5 |
+| [`employees`](#employees) | 12 | 7 |
+| [`import_jobs`](#import-jobs) | 8 | 1 |
+| [`import_mappings`](#import-mappings) | 10 | 1 |
+| [`notes`](#notes) | 10 | 0 |
+| [`org_email_settings`](#org-email-settings) | 12 | 1 |
+| [`org_gl_account_defaults`](#org-gl-account-defaults) | 21 | 19 |
+| [`organization_members`](#organization-members) | 5 | 1 |
+| [`organizations`](#organizations) | 7 | 0 |
+| [`shared_party_relationships`](#shared-party-relationships) | 8 | 9 |
+| [`user_table_preferences`](#user-table-preferences) | 7 | 1 |
+
+## `admin_nextnumbers`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `transaction_type` | `text` | NO | — |
+| `prefix` | `text` | NO | ''::text |
+| `length` | `integer` | NO | 6 |
+| `range_start` | `bigint` | NO | 1 |
+| `range_end` | `bigint` | NO | 999999 |
+| `last_number` | `bigint` | NO | 0 |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `admin_nextnumbers_organization_id_fkey` |
+
+## `api_oauth_clients`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `client_id` | `text` | NO | — |
+| `client_secret_hash` | `text` | NO | — |
+| `name` | `text` | NO | — |
+| `scopes` | `_text[]` | NO | — |
+| `status` | `text` | NO | 'active'::text |
+| `created_by` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `api_oauth_clients_organization_id_fkey` |
+
+## `clerk_org_map`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `clerk_org_id` | `text` | NO | — |
+| `organization_id` | `uuid` | NO | — |
+| `created_at` | `timestamptz` | YES | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `clerk_org_map_organization_id_fkey` |
+
+## `clerk_probe`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `clerk_user_id` | `text` | NO | (auth.jwt() ->> 'sub'::text) |
+| `note` | `text` | YES | — |
+| `created_at` | `timestamptz` | YES | now() |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `contact_links`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `contact_id` | `uuid` | NO | — |
+| `supplier_id` | `uuid` | YES | — |
+| `customer_id` | `uuid` | YES | — |
+| `is_default` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `contact_id` | `contacts.id` | `contact_links_contact_id_fkey` |
+| `customer_id` | `ar_customers.id` | `contact_links_customer_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `contact_links_supplier_id_fkey` |
+
+## `contacts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `name` | `text` | NO | — |
+| `title` | `text` | YES | — |
+| `email` | `text` | YES | — |
+| `phone` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `data_audit_events`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `entity_type` | `text` | NO | — |
+| `entity_id` | `text` | NO | — |
+| `action` | `text` | NO | — |
+| `actor_id` | `text` | YES | — |
+| `actor_name` | `text` | YES | — |
+| `source` | `text` | NO | 'db'::text |
+| `changed_fields` | `_text[]` | NO | '{}'::text[] |
+| `material_diff` | `jsonb` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `data_audit_events_organization_id_fkey` |
+
+## `data_audit_registry`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `entity_type` | `text` | NO | — |
+| `material_columns` | `_text[]` | NO | '{}'::text[] |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `email_send_log`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `idempotency_key` | `text` | NO | — |
+| `template_key` | `text` | NO | — |
+| `document_id` | `text` | YES | — |
+| `to_email` | `text` | NO | — |
+| `resend_message_id` | `text` | YES | — |
+| `status` | `text` | NO | 'sent'::text |
+| `detail` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `email_send_log_organization_id_fkey` |
+
+## `employee_status_history`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `employee_id` | `uuid` | NO | — |
+| `status` | `text` | NO | — |
+| `effective_date` | `date` | NO | — |
+| `changed_by` | `text` | NO | — |
+| `changed_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `employee_id` | `employees.organization_id` | `employee_status_history_employee_same_org_fkey` |
+| `employee_id` | `employees.id` | `employee_status_history_employee_same_org_fkey` |
+| `organization_id` | `organizations.id` | `employee_status_history_organization_id_fkey` |
+| `organization_id` | `employees.id` | `employee_status_history_employee_same_org_fkey` |
+| `organization_id` | `employees.organization_id` | `employee_status_history_employee_same_org_fkey` |
+
+## `employees`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `first_name` | `text` | NO | — |
+| `last_name` | `text` | NO | — |
+| `email` | `text` | NO | — |
+| `status` | `text` | NO | 'active'::text |
+| `start_date` | `date` | NO | — |
+| `end_date` | `date` | YES | — |
+| `manager_id` | `uuid` | YES | — |
+| `expense_default_account_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `expense_default_account_id` | `finance_chartofaccounts_accounts.id` | `employees_expense_default_account_id_fkey` |
+| `manager_id` | `employees.id` | `employees_manager_same_org_fkey` |
+| `manager_id` | `employees.id` | `employees_manager_id_fkey` |
+| `manager_id` | `employees.organization_id` | `employees_manager_same_org_fkey` |
+| `organization_id` | `employees.id` | `employees_manager_same_org_fkey` |
+| `organization_id` | `organizations.id` | `employees_organization_id_fkey` |
+| `organization_id` | `employees.organization_id` | `employees_manager_same_org_fkey` |
+
+## `import_jobs`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `entity` | `text` | NO | — |
+| `source` | `text` | NO | 'csv'::text |
+| `row_counts` | `jsonb` | NO | '{}'::jsonb |
+| `status` | `text` | NO | 'completed'::text |
+| `created_by` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `import_jobs_organization_id_fkey` |
+
+## `import_mappings`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `entity` | `text` | NO | — |
+| `source` | `text` | NO | 'csv'::text |
+| `name` | `text` | YES | — |
+| `column_map` | `jsonb` | NO | — |
+| `options` | `jsonb` | NO | '{}'::jsonb |
+| `created_by` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `import_mappings_organization_id_fkey` |
+
+## `notes`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `entity_type` | `text` | NO | — |
+| `entity_id` | `uuid` | NO | — |
+| `body` | `text` | NO | — |
+| `visibility` | `text` | NO | 'internal'::text |
+| `author_id` | `text` | NO | — |
+| `author_name` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `org_email_settings`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | NO | — |
+| `sending_mode` | `text` | NO | 'shared'::text |
+| `from_name` | `text` | NO | ''::text |
+| `from_local_part` | `text` | NO | 'notifications'::text |
+| `reply_to_email` | `text` | NO | ''::text |
+| `sending_subdomain` | `text` | YES | — |
+| `resend_domain_id` | `text` | YES | — |
+| `dns_records` | `jsonb` | YES | — |
+| `verification_status` | `text` | NO | 'not_started'::text |
+| `verified_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `org_email_settings_organization_id_fkey` |
+
+## `org_gl_account_defaults`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | NO | — |
+| `gl_inventory_account_id` | `uuid` | YES | — |
+| `gl_cogs_account_id` | `uuid` | YES | — |
+| `gl_revenue_account_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `gl_grni_account_id` | `uuid` | YES | — |
+| `gl_ppv_account_id` | `uuid` | YES | — |
+| `gl_ap_control_account_id` | `uuid` | YES | — |
+| `gl_ar_control_account_id` | `uuid` | YES | — |
+| `gl_deferred_revenue_account_id` | `uuid` | YES | — |
+| `gl_prepaid_expense_account_id` | `uuid` | YES | — |
+| `gl_operating_cash_account_id` | `uuid` | YES | — |
+| `gl_card_clearing_account_id` | `uuid` | YES | — |
+| `gl_refund_payable_account_id` | `uuid` | YES | — |
+| `gl_ar_sales_tax_payable_account_id` | `uuid` | YES | — |
+| `gl_customer_deposits_account_id` | `uuid` | YES | — |
+| `gl_freight_expense_account_id` | `uuid` | YES | — |
+| `gl_freight_clearing_account_id` | `uuid` | YES | — |
+| `gl_landed_cost_accrual_account_id` | `uuid` | YES | — |
+| `gl_landed_cost_trueup_account_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `gl_ap_control_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_ap_control_account_id_fkey` |
+| `gl_ar_control_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_ar_control_account_id_fkey` |
+| `gl_ar_sales_tax_payable_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_ar_sales_tax_payable_account_id_fkey` |
+| `gl_card_clearing_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_card_clearing_account_id_fkey` |
+| `gl_cogs_account_id` | `finance_chartofaccounts_accounts.id` | `org_inventory_gl_defaults_gl_cogs_account_id_fkey` |
+| `gl_customer_deposits_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_customer_deposits_account_id_fkey` |
+| `gl_deferred_revenue_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_deferred_revenue_account_id_fkey` |
+| `gl_freight_clearing_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_freight_clearing_account_id_fkey` |
+| `gl_freight_expense_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_freight_expense_account_id_fkey` |
+| `gl_grni_account_id` | `finance_chartofaccounts_accounts.id` | `org_inventory_gl_defaults_gl_grni_account_id_fkey` |
+| `gl_inventory_account_id` | `finance_chartofaccounts_accounts.id` | `org_inventory_gl_defaults_gl_inventory_account_id_fkey` |
+| `gl_landed_cost_accrual_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_landed_cost_accrual_account_id_fkey` |
+| `gl_landed_cost_trueup_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_landed_cost_trueup_account_id_fkey` |
+| `gl_operating_cash_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_operating_cash_account_id_fkey` |
+| `gl_ppv_account_id` | `finance_chartofaccounts_accounts.id` | `org_inventory_gl_defaults_gl_ppv_account_id_fkey` |
+| `gl_prepaid_expense_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_prepaid_expense_account_id_fkey` |
+| `gl_refund_payable_account_id` | `finance_chartofaccounts_accounts.id` | `org_gl_account_defaults_gl_refund_payable_account_id_fkey` |
+| `gl_revenue_account_id` | `finance_chartofaccounts_accounts.id` | `org_inventory_gl_defaults_gl_revenue_account_id_fkey` |
+| `organization_id` | `organizations.id` | `org_inventory_gl_defaults_organization_id_fkey` |
+
+## `organization_members`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | NO | — |
+| `role` | `text` | NO | 'member'::text |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `organization_members_organization_id_fkey` |
+
+## `organizations`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `name` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `slug` | `text` | YES | — |
+| `easypost_webhook_id` | `text` | YES | — |
+| `easypost_account_key_secret_id` | `uuid` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `shared_party_relationships`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `customer_id` | `uuid` | NO | — |
+| `supplier_id` | `uuid` | NO | — |
+| `combine_history` | `boolean` | NO | false |
+| `combine_balances` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `customer_id` | `ar_customers.organization_id` | `shared_party_relationships_customer_org_fkey` |
+| `customer_id` | `ar_customers.id` | `shared_party_relationships_customer_org_fkey` |
+| `organization_id` | `ap_suppliers.id` | `shared_party_relationships_supplier_org_fkey` |
+| `organization_id` | `ar_customers.organization_id` | `shared_party_relationships_customer_org_fkey` |
+| `organization_id` | `ar_customers.id` | `shared_party_relationships_customer_org_fkey` |
+| `organization_id` | `ap_suppliers.organization_id` | `shared_party_relationships_supplier_org_fkey` |
+| `organization_id` | `organizations.id` | `shared_party_relationships_organization_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `shared_party_relationships_supplier_org_fkey` |
+| `supplier_id` | `ap_suppliers.organization_id` | `shared_party_relationships_supplier_org_fkey` |
+
+## `user_table_preferences`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `text` | NO | — |
+| `table_key` | `text` | NO | — |
+| `column_widths` | `jsonb` | NO | '{}'::jsonb |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `user_table_preferences_organization_id_fkey` |
+

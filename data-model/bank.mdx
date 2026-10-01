@@ -1,0 +1,381 @@
+---
+title: "Bank and cash"
+description: "Plaid connections, bank accounts, transactions, and reconciliation links."
+---
+
+Plaid connections, bank accounts, transactions, and reconciliation links.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`finance_bank_accounts`](#finance-bank-accounts) | 12 | 3 |
+| [`finance_bank_intransit_entries`](#finance-bank-intransit-entries) | 8 | 3 |
+| [`finance_bank_memorized_coding_rules`](#finance-bank-memorized-coding-rules) | 18 | 2 |
+| [`finance_bank_transaction_links`](#finance-bank-transaction-links) | 9 | 4 |
+| [`finance_bank_transactions`](#finance-bank-transactions) | 15 | 2 |
+| [`plaid_accounts`](#plaid-accounts) | 17 | 2 |
+| [`plaid_item_secrets`](#plaid-item-secrets) | 7 | 2 |
+| [`plaid_items`](#plaid-items) | 17 | 1 |
+| [`plaid_liabilities_credit`](#plaid-liabilities-credit) | 14 | 2 |
+| [`plaid_statements`](#plaid-statements) | 13 | 1 |
+| [`plaid_sync_log`](#plaid-sync-log) | 13 | 2 |
+| [`plaid_transactions`](#plaid-transactions) | 20 | 2 |
+| [`plaid_webhook_keys`](#plaid-webhook-keys) | 8 | 1 |
+
+## `finance_bank_accounts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `source` | `text` | NO | — |
+| `plaid_account_id` | `uuid` | YES | — |
+| `name` | `text` | NO | — |
+| `mask` | `text` | YES | — |
+| `account_type` | `text` | NO | — |
+| `gl_account_id` | `uuid` | YES | — |
+| `is_active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `gl_account_id` | `finance_chartofaccounts_accounts.id` | `finance_bank_accounts_gl_account_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_bank_accounts_organization_id_fkey` |
+| `plaid_account_id` | `plaid_accounts.id` | `finance_bank_accounts_plaid_account_id_fkey` |
+
+## `finance_bank_intransit_entries`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `bank_account_id` | `uuid` | NO | — |
+| `journal_entry_id` | `uuid` | NO | — |
+| `note` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_account_id` | `finance_bank_accounts.id` | `finance_bank_intransit_entries_bank_account_id_fkey` |
+| `journal_entry_id` | `finance_journalentries_entries.id` | `finance_bank_intransit_entries_journal_entry_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_bank_intransit_entries_organization_id_fkey` |
+
+## `finance_bank_memorized_coding_rules`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `merchant_matcher` | `text` | NO | — |
+| `merchant_label` | `text` | NO | — |
+| `account_code` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `merchant_key` | `text` | YES | — |
+| `match_mode` | `text` | NO | 'contains'::text |
+| `bank_account_id` | `uuid` | YES | — |
+| `direction` | `text` | NO | 'any'::text |
+| `amount_max` | `numeric` | YES | — |
+| `action_type` | `text` | NO | 'categorize'::text |
+| `is_enabled` | `boolean` | NO | true |
+| `created_by` | `text` | YES | — |
+| `match_count` | `integer` | NO | 0 |
+| `last_matched_at` | `timestamptz` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_account_id` | `finance_bank_accounts.id` | `finance_bank_memorized_coding_rules_bank_account_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_bank_memorized_coding_rules_organization_id_fkey` |
+
+## `finance_bank_transaction_links`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `bank_transaction_id` | `uuid` | NO | — |
+| `journal_entry_id` | `uuid` | NO | — |
+| `link_type` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `memorized_rule_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_transaction_id` | `finance_bank_transactions.id` | `finance_bank_transaction_links_bank_transaction_id_fkey` |
+| `journal_entry_id` | `finance_journalentries_entries.id` | `finance_bank_transaction_links_journal_entry_id_fkey` |
+| `memorized_rule_id` | `finance_bank_memorized_coding_rules.id` | `finance_bank_transaction_links_memorized_rule_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_bank_transaction_links_organization_id_fkey` |
+
+## `finance_bank_transactions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `bank_account_id` | `uuid` | NO | — |
+| `source` | `text` | NO | — |
+| `source_transaction_id` | `text` | YES | — |
+| `posted_date` | `date` | NO | — |
+| `amount` | `numeric` | NO | — |
+| `description` | `text` | YES | — |
+| `merchant_name` | `text` | YES | — |
+| `pending` | `boolean` | NO | false |
+| `reconciliation_status` | `text` | NO | 'unreconciled'::text |
+| `excluded_reason` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_account_id` | `finance_bank_accounts.id` | `finance_bank_transactions_bank_account_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_bank_transactions_organization_id_fkey` |
+
+## `plaid_accounts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `plaid_item_uuid` | `uuid` | NO | — |
+| `plaid_account_id` | `text` | NO | — |
+| `name` | `text` | NO | ''::text |
+| `official_name` | `text` | YES | — |
+| `mask` | `text` | YES | — |
+| `type` | `text` | NO | ''::text |
+| `subtype` | `text` | YES | — |
+| `current_balance` | `numeric` | NO | 0 |
+| `available_balance` | `numeric` | YES | — |
+| `credit_limit` | `numeric` | YES | — |
+| `iso_currency_code` | `text` | NO | 'USD'::text |
+| `is_active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `plaid_accounts_organization_id_fkey` |
+| `plaid_item_uuid` | `plaid_items.id` | `plaid_accounts_plaid_item_uuid_fkey` |
+
+## `plaid_item_secrets`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `plaid_item_uuid` | `uuid` | NO | — |
+| `access_token` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `plaid_item_secrets_organization_id_fkey` |
+| `plaid_item_uuid` | `plaid_items.id` | `plaid_item_secrets_plaid_item_uuid_fkey` |
+
+## `plaid_items`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `plaid_item_id` | `text` | NO | — |
+| `institution_id` | `text` | YES | — |
+| `institution_name` | `text` | YES | — |
+| `institution_logo` | `text` | YES | — |
+| `status` | `text` | NO | 'active'::text |
+| `error_code` | `text` | YES | — |
+| `error_message` | `text` | YES | — |
+| `available_products` | `_text[]` | NO | '{}'::text[] |
+| `billed_products` | `_text[]` | NO | '{}'::text[] |
+| `consent_expiration_time` | `timestamptz` | YES | — |
+| `last_sync_at` | `timestamptz` | YES | — |
+| `transactions_cursor` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `plaid_items_organization_id_fkey` |
+
+## `plaid_liabilities_credit`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `plaid_account_uuid` | `uuid` | NO | — |
+| `last_statement_balance` | `numeric` | YES | — |
+| `last_statement_issue_date` | `date` | YES | — |
+| `minimum_payment_amount` | `numeric` | YES | — |
+| `next_payment_due_date` | `date` | YES | — |
+| `last_payment_date` | `date` | YES | — |
+| `last_payment_amount` | `numeric` | YES | — |
+| `is_overdue` | `boolean` | YES | — |
+| `aprs` | `jsonb` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `plaid_liabilities_credit_organization_id_fkey` |
+| `plaid_account_uuid` | `plaid_accounts.id` | `plaid_liabilities_credit_plaid_account_uuid_fkey` |
+
+## `plaid_statements`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `plaid_account_uuid` | `uuid` | NO | — |
+| `plaid_statement_id` | `text` | NO | — |
+| `month` | `smallint` | NO | — |
+| `year` | `smallint` | NO | — |
+| `pdf_storage_path` | `text` | YES | — |
+| `pdf_size_bytes` | `integer` | YES | — |
+| `pdf_sha256` | `text` | YES | — |
+| `downloaded_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `plaid_statements_organization_id_fkey` |
+
+## `plaid_sync_log`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `plaid_item_uuid` | `uuid` | NO | — |
+| `sync_type` | `text` | NO | — |
+| `status` | `text` | NO | — |
+| `transactions_added` | `integer` | NO | 0 |
+| `transactions_modified` | `integer` | NO | 0 |
+| `transactions_removed` | `integer` | NO | 0 |
+| `error_details` | `jsonb` | YES | — |
+| `started_at` | `timestamptz` | NO | now() |
+| `completed_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `plaid_sync_log_organization_id_fkey` |
+| `plaid_item_uuid` | `plaid_items.id` | `plaid_sync_log_plaid_item_uuid_fkey` |
+
+## `plaid_transactions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `plaid_account_uuid` | `uuid` | NO | — |
+| `plaid_transaction_id` | `text` | NO | — |
+| `pending_transaction_id` | `text` | YES | — |
+| `amount` | `numeric` | NO | 0 |
+| `iso_currency_code` | `text` | NO | 'USD'::text |
+| `date` | `date` | NO | — |
+| `authorized_date` | `date` | YES | — |
+| `name` | `text` | NO | ''::text |
+| `merchant_name` | `text` | YES | — |
+| `payment_channel` | `text` | YES | — |
+| `pending` | `boolean` | NO | false |
+| `category` | `_text[]` | YES | — |
+| `personal_finance_category_primary` | `text` | YES | — |
+| `personal_finance_category_detailed` | `text` | YES | — |
+| `location` | `jsonb` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `plaid_transactions_organization_id_fkey` |
+| `plaid_account_uuid` | `plaid_accounts.id` | `plaid_transactions_plaid_account_uuid_fkey` |
+
+## `plaid_webhook_keys`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `key_id` | `text` | NO | — |
+| `key` | `jsonb` | NO | — |
+| `expired_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `plaid_webhook_keys_organization_id_fkey` |
+

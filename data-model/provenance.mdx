@@ -1,0 +1,36 @@
+---
+title: "Schema provenance"
+description: "How the data model docs were generated from the live Sherpa database."
+hidden: true
+---
+
+## Source
+
+| Field | Value |
+| --- | --- |
+| Supabase project name | `sherpa` |
+| Project id | `linqdstukqayvducxguc` |
+| Schema | `public` |
+| Method | Live SQL via Supabase MCP (`information_schema`, constraint catalogs) |
+
+## Captured artifacts
+
+During scaffolding, live introspection produced:
+
+- Column inventory for all `public` tables
+- Primary keys
+- Foreign keys (477 relationships at capture time)
+- Domain groupings and transaction traces derived from those FKs
+
+## Non-sources
+
+- Migration SQL filenames may be used only as a secondary cross-check
+- Generated TypeScript types are not the source of truth
+- Application source may explain behavior but does not override live schema
+
+## Refresh process
+
+1. Re-query `information_schema.columns` and FK constraints on `linqdstukqayvducxguc`
+2. Regenerate `data-model/*.mdx` domain pages and table index
+3. Diff against previous docs for intentional review
+4. Do not paste row data or secrets into the repo

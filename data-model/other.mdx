@@ -1,0 +1,42 @@
+---
+title: "Other"
+description: "Supporting tables not grouped above."
+---
+
+Supporting tables not grouped above.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`purchase_order_actions`](#purchase-order-actions) | 14 | 1 |
+
+## `purchase_order_actions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `purchase_order_id` | `uuid` | NO | — |
+| `action_type` | `text` | NO | — |
+| `reason` | `text` | NO | — |
+| `line_reasons` | `jsonb` | NO | '{}'::jsonb |
+| `before_snapshot` | `jsonb` | NO | — |
+| `after_snapshot` | `jsonb` | NO | — |
+| `actor_id` | `text` | YES | — |
+| `actor_name` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `source` | `text` | NO | 'ui'::text |
+| `source_reference` | `text` | YES | — |
+| `batch_id` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `purchase_order_actions_organization_id_fkey` |
+

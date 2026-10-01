@@ -1,0 +1,52 @@
+---
+title: "Terminology"
+description: "Preferred Sherpa terms for support communication."
+---
+
+Use these terms consistently in tickets and customer replies.
+
+## Parties
+
+| Prefer | Avoid | Meaning |
+| --- | --- | --- |
+| Organization / org | Tenant / company (unless customer says company) | Sherpa customer workspace (`organizations`) |
+| Customer | Client (in AR context) | `ar_customers` |
+| Supplier | Vendor (unless UI says vendor) | `ap_suppliers` |
+| Member | User (when meaning org membership) | `organization_members` |
+
+## Documents
+
+| Term | Table / concept |
+| --- | --- |
+| Invoice | `ar_invoices` with `doc_type = invoice` |
+| Credit memo / debit memo | AR or AP document with matching `doc_type` / `adjustment_type` |
+| Bill | `ap_bills` |
+| Journal entry / JE | `finance_journalentries_entries` identified by `entry_code` |
+| Sales order | `sales_orders` |
+| Fulfillment | `fulfillments` (pick → pack → shipped) |
+| Purchase order | `ap_purchase_orders` |
+| Receipt | `ap_receipts` |
+| Payment application | Link rows in `ar_payment_applications` / `ap_payment_applications` |
+
+## Status language
+
+- Say **open**, **partially paid**, **paid**, **closed**, **void**, **draft** — match the live `status` check constraints.
+- Bank transactions: **unreconciled**, **needs_review**, **matched**, **categorized**, **payment_applied**, **excluded**.
+- Plaid items: **active**, **login_required**, **error**, **disconnected**.
+- Data connections: **connected**, **disconnected**, **error**.
+
+## Integrations
+
+| Prefer | Meaning |
+| --- | --- |
+| Plaid item | Linked financial institution connection (`plaid_items`) |
+| Data connection | Generic integration row (`data_connections`) for cart/WMS/carrier |
+| Trackstar | Commerce/WMS bridge used for Shopify cart sync |
+| Cart ingest exception | Failed inbound cart event (`cart_ingest_exceptions`) |
+| EasyPost | Carrier label and tracking provider |
+
+## Writing rules
+
+- Second person ("you") in customer-facing steps.
+- Bold UI labels: Click **Settings**.
+- Code format for table names, columns, RPCs, and IDs.

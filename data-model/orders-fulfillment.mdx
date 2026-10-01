@@ -1,0 +1,512 @@
+---
+title: "Orders and fulfillment"
+description: "Sales orders, fulfillments, pick batches, shipments, and channel settings."
+---
+
+Sales orders, fulfillments, pick batches, shipments, and channel settings.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`commerce_channel_settings`](#commerce-channel-settings) | 10 | 2 |
+| [`fulfillment_boxes`](#fulfillment-boxes) | 14 | 2 |
+| [`fulfillment_line_bin_allocations`](#fulfillment-line-bin-allocations) | 8 | 4 |
+| [`fulfillment_lines`](#fulfillment-lines) | 19 | 5 |
+| [`fulfillment_packages`](#fulfillment-packages) | 16 | 5 |
+| [`fulfillment_scales`](#fulfillment-scales) | 10 | 2 |
+| [`fulfillment_trackstar_shipment_lines`](#fulfillment-trackstar-shipment-lines) | 11 | 5 |
+| [`fulfillments`](#fulfillments) | 24 | 5 |
+| [`pick_batch_fulfillments`](#pick-batch-fulfillments) | 5 | 3 |
+| [`pick_batches`](#pick-batches) | 9 | 2 |
+| [`sales_order_actions`](#sales-order-actions) | 14 | 1 |
+| [`sales_order_line_shipping_groups`](#sales-order-line-shipping-groups) | 11 | 3 |
+| [`sales_order_lines`](#sales-order-lines) | 19 | 4 |
+| [`sales_order_status_history`](#sales-order-status-history) | 7 | 2 |
+| [`sales_orders`](#sales-orders) | 29 | 3 |
+| [`shipments`](#shipments) | 32 | 4 |
+
+## `commerce_channel_settings`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `channel` | `text` | NO | — |
+| `active` | `boolean` | NO | true |
+| `default_fulfillment_method` | `text` | NO | 'in_house'::text |
+| `default_warehouse_id` | `uuid` | YES | — |
+| `default_carrier` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `prepayment_expected` | `boolean` | NO | false |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `default_warehouse_id` | `warehouses.id` | `commerce_channel_settings_default_warehouse_id_fkey` |
+| `organization_id` | `organizations.id` | `commerce_channel_settings_organization_id_fkey` |
+
+## `fulfillment_boxes`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `warehouse_id` | `uuid` | YES | — |
+| `code` | `text` | NO | — |
+| `name` | `text` | NO | — |
+| `inner_length` | `numeric` | NO | — |
+| `inner_width` | `numeric` | NO | — |
+| `inner_height` | `numeric` | NO | — |
+| `tare_weight_oz` | `numeric` | NO | 0 |
+| `max_weight_oz` | `numeric` | NO | — |
+| `active` | `boolean` | NO | true |
+| `is_default` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `fulfillment_boxes_organization_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `fulfillment_boxes_warehouse_id_fkey` |
+
+## `fulfillment_line_bin_allocations`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `fulfillment_id` | `uuid` | NO | — |
+| `fulfillment_line_id` | `uuid` | NO | — |
+| `warehouse_bin_id` | `uuid` | NO | — |
+| `quantity` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `fulfillment_id` | `fulfillments.id` | `fulfillment_line_bin_allocations_fulfillment_id_fkey` |
+| `fulfillment_line_id` | `fulfillment_lines.id` | `fulfillment_line_bin_allocations_fulfillment_line_id_fkey` |
+| `organization_id` | `organizations.id` | `fulfillment_line_bin_allocations_organization_id_fkey` |
+| `warehouse_bin_id` | `warehouse_bins.id` | `fulfillment_line_bin_allocations_warehouse_bin_id_fkey` |
+
+## `fulfillment_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `fulfillment_id` | `uuid` | NO | — |
+| `sales_order_line_id` | `uuid` | NO | — |
+| `item_id` | `uuid` | NO | — |
+| `qty_shipped` | `numeric` | NO | — |
+| `unit_cost` | `numeric` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `uom_id` | `uuid` | YES | — |
+| `qty_entered` | `numeric` | YES | — |
+| `uom_conversion_to_base` | `numeric` | YES | — |
+| `qty_requested` | `numeric` | YES | — |
+| `qty_picked` | `numeric` | YES | — |
+| `qty_packed` | `numeric` | YES | — |
+| `qty_posted` | `numeric` | YES | — |
+| `short_pick_reason` | `text` | YES | — |
+| `updated_at` | `timestamptz` | NO | now() |
+| `segment_values` | `jsonb` | NO | '{}'::jsonb |
+| `dimensions` | `jsonb` | NO | '{}'::jsonb |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `fulfillment_id` | `fulfillments.id` | `fulfillment_lines_fulfillment_id_fkey` |
+| `item_id` | `items.id` | `fulfillment_lines_item_id_fkey` |
+| `organization_id` | `organizations.id` | `fulfillment_lines_organization_id_fkey` |
+| `sales_order_line_id` | `sales_order_lines.id` | `fulfillment_lines_sales_order_line_id_fkey` |
+| `uom_id` | `units_of_measure.id` | `fulfillment_lines_uom_id_fkey` |
+
+## `fulfillment_packages`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `fulfillment_id` | `uuid` | NO | — |
+| `package_number` | `integer` | NO | — |
+| `box_id` | `uuid` | YES | — |
+| `scale_id` | `uuid` | YES | — |
+| `weight_oz` | `numeric` | YES | — |
+| `length` | `numeric` | YES | — |
+| `width` | `numeric` | YES | — |
+| `height` | `numeric` | YES | — |
+| `packed_lines` | `jsonb` | NO | '[]'::jsonb |
+| `shipment_id` | `uuid` | YES | — |
+| `carrier_reference` | `text` | YES | — |
+| `status` | `text` | NO | 'draft'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `box_id` | `fulfillment_boxes.id` | `fulfillment_packages_box_id_fkey` |
+| `fulfillment_id` | `fulfillments.id` | `fulfillment_packages_fulfillment_id_fkey` |
+| `organization_id` | `organizations.id` | `fulfillment_packages_organization_id_fkey` |
+| `scale_id` | `fulfillment_scales.id` | `fulfillment_packages_scale_id_fkey` |
+| `shipment_id` | `shipments.id` | `fulfillment_packages_shipment_id_fkey` |
+
+## `fulfillment_scales`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `warehouse_id` | `uuid` | YES | — |
+| `name` | `text` | NO | — |
+| `supported_unit` | `text` | NO | 'oz'::text |
+| `device_reference` | `text` | YES | — |
+| `active` | `boolean` | NO | true |
+| `is_default` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `fulfillment_scales_organization_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `fulfillment_scales_warehouse_id_fkey` |
+
+## `fulfillment_trackstar_shipment_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `fulfillment_id` | `uuid` | NO | — |
+| `sales_order_id` | `uuid` | NO | — |
+| `sales_order_line_id` | `uuid` | NO | — |
+| `sales_order_line_shipping_group_id` | `uuid` | NO | — |
+| `trackstar_shipping_group_id` | `text` | NO | — |
+| `trackstar_group_line_item_id` | `text` | NO | — |
+| `quantity` | `integer` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `fulfillment_id` | `fulfillments.id` | `fulfillment_trackstar_shipment_lines_fulfillment_id_fkey` |
+| `organization_id` | `organizations.id` | `fulfillment_trackstar_shipment_lines_organization_id_fkey` |
+| `sales_order_id` | `sales_orders.id` | `fulfillment_trackstar_shipment_lines_sales_order_id_fkey` |
+| `sales_order_line_id` | `sales_order_lines.id` | `fulfillment_trackstar_shipment_lines_sales_order_line_id_fkey` |
+| `sales_order_line_shipping_group_id` | `sales_order_line_shipping_groups.id` | `fulfillment_trackstar_shipmen_sales_order_line_shipping_gr_fkey` |
+
+## `fulfillments`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `fulfillment_number` | `text` | NO | — |
+| `sales_order_id` | `uuid` | NO | — |
+| `warehouse_id` | `uuid` | NO | — |
+| `fulfillment_mode` | `text` | NO | — |
+| `state` | `text` | NO | 'pick'::text |
+| `tracking_number` | `text` | YES | — |
+| `shipped_at` | `timestamptz` | YES | — |
+| `posted` | `boolean` | NO | false |
+| `journal_entry_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `created_by` | `text` | YES | — |
+| `voided_at` | `timestamptz` | YES | — |
+| `reversal_journal_entry_code` | `text` | YES | — |
+| `channel` | `text` | YES | — |
+| `fulfillment_method` | `text` | YES | — |
+| `ship_to_snapshot` | `jsonb` | YES | — |
+| `carrier_reference` | `text` | YES | — |
+| `external_id` | `text` | YES | — |
+| `invoice_status` | `text` | NO | 'none'::text |
+| `invoice_error` | `text` | YES | — |
+| `invoice_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `invoice_id` | `ar_invoices.id` | `fulfillments_invoice_id_fkey` |
+| `journal_entry_id` | `finance_journalentries_entries.id` | `fulfillments_journal_entry_id_fkey` |
+| `organization_id` | `organizations.id` | `fulfillments_organization_id_fkey` |
+| `sales_order_id` | `sales_orders.id` | `fulfillments_sales_order_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `fulfillments_warehouse_id_fkey` |
+
+## `pick_batch_fulfillments`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `pick_batch_id` | `uuid` | NO | — |
+| `fulfillment_id` | `uuid` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `fulfillment_id` | `fulfillments.id` | `pick_batch_fulfillments_fulfillment_id_fkey` |
+| `organization_id` | `organizations.id` | `pick_batch_fulfillments_organization_id_fkey` |
+| `pick_batch_id` | `pick_batches.id` | `pick_batch_fulfillments_pick_batch_id_fkey` |
+
+## `pick_batches`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `batch_number` | `text` | NO | — |
+| `warehouse_id` | `uuid` | NO | — |
+| `status` | `text` | NO | 'draft'::text |
+| `completed_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `created_by` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `pick_batches_organization_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `pick_batches_warehouse_id_fkey` |
+
+## `sales_order_actions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `sales_order_id` | `uuid` | NO | — |
+| `action_type` | `text` | NO | — |
+| `reason` | `text` | NO | — |
+| `line_reasons` | `jsonb` | NO | '{}'::jsonb |
+| `before_snapshot` | `jsonb` | NO | — |
+| `after_snapshot` | `jsonb` | NO | — |
+| `actor_id` | `text` | YES | — |
+| `actor_name` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `source` | `text` | NO | 'ui'::text |
+| `source_reference` | `text` | YES | — |
+| `batch_id` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `sales_order_actions_organization_id_fkey` |
+
+## `sales_order_line_shipping_groups`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `sales_order_id` | `uuid` | NO | — |
+| `sales_order_line_id` | `uuid` | NO | — |
+| `trackstar_shipping_group_id` | `text` | NO | — |
+| `trackstar_group_line_item_id` | `text` | NO | — |
+| `trackstar_warehouse_id` | `text` | YES | — |
+| `allocated_quantity` | `integer` | NO | — |
+| `group_status` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `sales_order_line_shipping_groups_organization_id_fkey` |
+| `sales_order_id` | `sales_orders.id` | `sales_order_line_shipping_groups_sales_order_id_fkey` |
+| `sales_order_line_id` | `sales_order_lines.id` | `sales_order_line_shipping_groups_sales_order_line_id_fkey` |
+
+## `sales_order_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `sales_order_id` | `uuid` | NO | — |
+| `line_number` | `integer` | NO | — |
+| `item_id` | `uuid` | NO | — |
+| `description` | `text` | YES | — |
+| `qty_ordered` | `numeric` | NO | — |
+| `qty_fulfilled` | `numeric` | NO | 0 |
+| `unit_price` | `numeric` | NO | — |
+| `line_total` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `uom_id` | `uuid` | YES | — |
+| `qty_entered` | `numeric` | YES | — |
+| `uom_conversion_to_base` | `numeric` | YES | — |
+| `segment_values` | `jsonb` | NO | '{}'::jsonb |
+| `dimensions` | `jsonb` | NO | '{}'::jsonb |
+| `procurement_mode` | `text` | YES | — |
+| `trackstar_line_item_id` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `item_id` | `items.id` | `sales_order_lines_item_id_fkey` |
+| `organization_id` | `organizations.id` | `sales_order_lines_organization_id_fkey` |
+| `sales_order_id` | `sales_orders.id` | `sales_order_lines_sales_order_id_fkey` |
+| `uom_id` | `units_of_measure.id` | `sales_order_lines_uom_id_fkey` |
+
+## `sales_order_status_history`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `sales_order_id` | `uuid` | NO | — |
+| `old_status` | `text` | YES | — |
+| `new_status` | `text` | NO | — |
+| `changed_by` | `text` | YES | — |
+| `changed_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `sales_order_status_history_organization_id_fkey` |
+| `sales_order_id` | `sales_orders.id` | `sales_order_status_history_sales_order_id_fkey` |
+
+## `sales_orders`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `order_number` | `text` | NO | — |
+| `customer_id` | `uuid` | NO | — |
+| `order_type` | `text` | NO | 'ecommerce'::text |
+| `channel` | `text` | YES | — |
+| `status` | `text` | NO | 'draft'::text |
+| `order_date` | `date` | NO | CURRENT_DATE |
+| `warehouse_id` | `uuid` | YES | — |
+| `subtotal` | `numeric` | NO | 0 |
+| `total` | `numeric` | NO | 0 |
+| `currency` | `text` | YES | — |
+| `notes` | `text` | YES | — |
+| `external_id` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `created_by` | `text` | YES | — |
+| `fulfillment_method` | `text` | YES | — |
+| `origin` | `text` | NO | 'operational'::text |
+| `import_job_id` | `uuid` | YES | — |
+| `bill_to_snapshot` | `jsonb` | YES | — |
+| `ship_to_snapshot` | `jsonb` | YES | — |
+| `tax_total` | `numeric` | NO | 0 |
+| `shipping_total` | `numeric` | NO | 0 |
+| `discount_total` | `numeric` | NO | 0 |
+| `checkout_payment_status` | `text` | YES | — |
+| `trackstar_shipping_groups_fingerprint` | `text` | YES | — |
+| `trackstar_shipping_groups_synced_at` | `timestamptz` | YES | — |
+| `channel_order_number` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `customer_id` | `ar_customers.id` | `sales_orders_customer_id_fkey` |
+| `organization_id` | `organizations.id` | `sales_orders_organization_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `sales_orders_warehouse_id_fkey` |
+
+## `shipments`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `fulfillment_id` | `uuid` | YES | — |
+| `sales_order_id` | `uuid` | YES | — |
+| `carrier` | `text` | YES | — |
+| `service` | `text` | YES | — |
+| `cost` | `numeric` | YES | — |
+| `cost_currency` | `text` | YES | — |
+| `tracking_number` | `text` | YES | — |
+| `label_url` | `text` | YES | — |
+| `status` | `text` | NO | 'draft'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `easypost_shipment_id` | `text` | YES | — |
+| `easypost_rate_id` | `text` | YES | — |
+| `rates_snapshot` | `jsonb` | YES | — |
+| `rates_fetched_at` | `timestamptz` | YES | — |
+| `rates_expire_at` | `timestamptz` | YES | — |
+| `rating_fingerprint` | `text` | YES | — |
+| `delivery_days` | `integer` | YES | — |
+| `delivery_date` | `date` | YES | — |
+| `address_warnings` | `jsonb` | YES | — |
+| `carrier_messages` | `jsonb` | YES | — |
+| `posting_pending` | `boolean` | NO | false |
+| `posting_error` | `text` | YES | — |
+| `refund_status` | `text` | YES | — |
+| `purchase_claimed_at` | `timestamptz` | YES | — |
+| `tracking_status` | `text` | YES | — |
+| `tracking_status_detail` | `text` | YES | — |
+| `tracking_updated_at` | `timestamptz` | YES | — |
+| `package_id` | `uuid` | YES | — |
+| `ship_to_override` | `jsonb` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `fulfillment_id` | `fulfillments.id` | `shipments_fulfillment_id_fkey` |
+| `organization_id` | `organizations.id` | `shipments_organization_id_fkey` |
+| `package_id` | `fulfillment_packages.id` | `shipments_package_id_fkey` |
+| `sales_order_id` | `sales_orders.id` | `shipments_sales_order_id_fkey` |
+

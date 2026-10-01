@@ -1,0 +1,92 @@
+---
+title: "General ledger"
+description: "Runbook for journal entries, fiscal periods, dimensions, and account resolution."
+---
+
+## Symptoms
+
+- Document posts in subledger but no JE / wrong JE
+- Cannot post because period is closed or locked
+- Dimension validation errors on post
+- Auto-reverse did not create reversing entry
+- Account resolve created unexpected segment combination
+
+## Key tables
+
+| Table | Role |
+| --- | --- |
+| `finance_journalentries_entries` | JE header (`entry_code`) |
+| `finance_journalentries_lines` | JE lines |
+| `finance_chartofaccounts_setup` / `_segments` / `_accounts` | COA |
+| `finance_dimensions_setup` / `_associations` | Dimension rules |
+| `finance_fiscalcalendar_setup` / `_periods` / `_events` | Period controls |
+| `finance_ledgers` | Ledger definitions |
+| `finance_termscodes` | Payment terms |
+| `org_gl_account_defaults` | Org default accounts |
+
+Period module flags on `finance_fiscalcalendar_periods`: `gl_open`, `ap_open`, `ar_open`, `inventory_open`, `cash_open`.
+
+## Evidence queries
+
+```sql
+SELECT id, entry_code, date, reference, memo, status, source_type, source_id,
+       auto_reverse, reversing, related_entry_ids
+FROM finance_journalentries_entries
+WHERE organization_id = :org_id
+  AND entry_code = :entry_code;
+```
+
+```sql
+SELECT line_number, account_id, debit, credit, memo, item_code
+FROM finance_journalentries_lines
+WHERE organization_id = :org_id
+  AND entry_id = :entry_id
+ORDER BY line_number;
+```
+
+```sql
+SELECT period_number, name, start_date, end_date, status,
+       gl_open, ap_open, ar_open, inventory_open, cash_open,
+       locked_at, closed_at
+FROM finance_fiscalcalendar_periods
+WHERE organization_id = :org_id
+  AND :doc_date BETWEEN start_date AND end_date;
+```
+
+## Common causes
+
+| Cause | Signal | Direction |
+| --- | --- | --- |
+| Module closed | Matching `*_open = false` | Finance reopens specific module |
+| Period locked | `locked_at` set | Unlock via approved period controls |
+| Missing dimension | Post RPC dimension validation error | Supply employee/channel/etc. on source doc |
+| Soft-linked JE missing | Document has `journal_entry_code` but no row | Search by code; check void/reverse chain |
+| Unbalanced lines | Debits ≠ credits | Do not "fix" lines by hand — reverse and repost via RPC |
+
+## Remediation
+
+<Steps>
+  <Step title="Confirm period gates">
+    Match the document domain to the correct `*_open` flag.
+  </Step>
+  <Step title="Locate JE by code and source">
+    Check both `entry_code` and `source_type`/`source_id`.
+  </Step>
+  <Step title="Reverse, do not edit posted lines">
+    Use `finance_reverse_journal_entry` / product void flows.
+  </Step>
+  <Step title="Re-post from source document">
+    Fix source dimensions/accounts, then post again through the document RPC.
+  </Step>
+</Steps>
+
+## Escalate when
+
+- Period close blockers (`finance_period_close_blockers`) disagree with UI
+- Dynamic account resolver creating wrong natural accounts at scale
+- Migrated `hist_*` documents interacting with live JE repair
+
+## Related
+
+- [GL data model](/data-model/gl)
+- [Transaction traces](/data-model/transaction-traces)

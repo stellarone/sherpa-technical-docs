@@ -1,0 +1,93 @@
+---
+title: "Accounts payable"
+description: "Runbook for bills, AP payments, applications, W-9, and positive pay."
+---
+
+## Symptoms
+
+- Bill will not leave `draft` or fails to post
+- Payment amount will not apply / bill stuck `partially_paid`
+- Credit memo will not close
+- Supplier W-9 / 1099 status wrong
+- Positive pay exception undecided
+
+## Key tables
+
+| Table | Role |
+| --- | --- |
+| `ap_suppliers` | Supplier master |
+| `ap_purchase_orders` / `ap_purchase_order_lines` | Procurement |
+| `ap_receipts` / `ap_receipt_lines` | Receiving |
+| `ap_bills` / `ap_bills_lines` | Bills, credit/debit memos, adjustments |
+| `ap_payments` / `ap_payment_applications` | Outgoing payments |
+| `ap_credit_applications` / `ap_debit_applications` / `ap_adjustment_applications` | Memo applications |
+| `ap_w9_envelopes` | DocuSign W-9 tracking |
+| `positive_pay_*` | Issue/import batches and exceptions |
+
+`ap_payments.status`: `draft` · `open` · `applied` · `closed` · `void` · `failed`
+
+## Evidence queries
+
+```sql
+SELECT id, bill_number, doc_type, status, supplier_id, amount, bill_date, due_date,
+       journal_entry_code, reference, origin, source
+FROM ap_bills
+WHERE organization_id = :org_id
+  AND bill_number = :bill_number;
+```
+
+```sql
+SELECT p.id, p.payment_number, p.status, p.amount, p.payment_date, p.method, p.doc_type,
+       a.bill_id, a.amount AS applied_amount
+FROM ap_payments p
+LEFT JOIN ap_payment_applications a ON a.payment_id = p.id
+WHERE p.organization_id = :org_id
+  AND p.payment_number = :payment_number;
+```
+
+```sql
+-- Period gate for bill date
+SELECT period_number, name, start_date, end_date, status, ap_open, gl_open
+FROM finance_fiscalcalendar_periods
+WHERE organization_id = :org_id
+  AND :bill_date BETWEEN start_date AND end_date;
+```
+
+## Common causes
+
+| Cause | Signal | Direction |
+| --- | --- | --- |
+| Draft number still assigned | `bill_number` like `DRAFT-%` | Complete numbering / post path in UI |
+| AP period closed | `ap_open = false` | Finance reopens AP module for period |
+| Missing supplier / tax profile | Null `supplier_id` or incomplete W-9 | Fix supplier master first |
+| Over-application | Application totals exceed document balance | Remove/adjust applications via product RPCs |
+| Unique supplier reference conflict | Duplicate `reference` for supplier | Correct reference; do not delete posted bill |
+| Void then repost attempt | Prior void + JE present | Use credit/debit memo instead of illegal repost |
+
+## Remediation
+
+<Steps>
+  <Step title="Confirm document type">
+    Bill vs credit memo vs debit memo vs adjustment — applications differ by type.
+  </Step>
+  <Step title="Trace PO → receipt → bill">
+    Use the [AP procure-to-pay trace](/data-model/transaction-traces#ap-procure-to-pay).
+  </Step>
+  <Step title="Prefer RPCs">
+    Posting and payment save/apply flows are RPC-backed (`post_ap_bill`, payment save/apply). Avoid hand-editing balances.
+  </Step>
+  <Step title="W-9 issues">
+    Check `ap_w9_envelopes` and DocuSign webhook completion before changing tax profiles.
+  </Step>
+</Steps>
+
+## Escalate when
+
+- Need to reverse a payment with bank-cleared check / positive pay already issued
+- Application rows exist without matching JE or with unbalanced JE lines
+- Landed cost / PPV interactions on the same receipt
+
+## Related
+
+- [AP data model](/data-model/ap)
+- [Support escalation](/support/escalation)

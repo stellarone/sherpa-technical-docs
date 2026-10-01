@@ -1,0 +1,69 @@
+---
+title: "Data model overview"
+description: "Live Postgres schema for Sherpa (Supabase project linqdstukqayvducxguc)."
+---
+
+This section is generated from the **live** `public` schema on Supabase project `linqdstukqayvducxguc` (name: `sherpa`).
+
+<Warning>
+Do not treat migrations or generated TypeScript types as the source of truth. Always verify against the live database when diagnosing production issues.
+</Warning>
+
+## Snapshot
+
+| Metric | Value |
+| --- | --- |
+| Schema | `public` |
+| Tables (with columns) | 175 |
+| Columns | 2314 |
+| Foreign keys | 477 |
+| Project id | `linqdstukqayvducxguc` |
+
+## Domains
+
+<Columns cols={2}>
+  <Card title="Platform and org" href="/data-model/platform" icon="database">
+    Tenant, auth mapping, members, contacts, audit, and numbering. 20 tables.
+  </Card>
+  <Card title="Accounts receivable" href="/data-model/ar" icon="database">
+    Customers, invoices, payments, applications, dunning, and recurring billing. 20 tables.
+  </Card>
+  <Card title="Accounts payable" href="/data-model/ap" icon="database">
+    Suppliers, POs, receipts, bills, payments, positive pay, and 1099. 29 tables.
+  </Card>
+  <Card title="General ledger" href="/data-model/gl" icon="database">
+    Chart of accounts, journals, fiscal periods, dimensions, terms, and ledgers. 22 tables.
+  </Card>
+  <Card title="Bank and cash" href="/data-model/bank" icon="database">
+    Plaid connections, bank accounts, transactions, and reconciliation links. 13 tables.
+  </Card>
+  <Card title="Inventory and items" href="/data-model/inventory" icon="database">
+    Items, warehouses, bins, inventory transactions, counts, and landed cost. 27 tables.
+  </Card>
+  <Card title="Orders and fulfillment" href="/data-model/orders-fulfillment" icon="database">
+    Sales orders, fulfillments, pick batches, shipments, and channel settings. 16 tables.
+  </Card>
+  <Card title="Integrations" href="/data-model/integrations" icon="database">
+    Data connections, cart/Trackstar sync, carrier connections, and webhooks. 10 tables.
+  </Card>
+  <Card title="Historical archive" href="/data-model/history" icon="database">
+    Reporting-only history twins for migrated or archived documents. 17 tables.
+  </Card>
+  <Card title="Other" href="/data-model/other" icon="database">
+    Supporting tables not grouped above. 1 tables.
+  </Card>
+</Columns>
+
+## How to use this reference
+
+1. Start with a [transaction trace](/data-model/transaction-traces) for the document flow you are debugging.
+2. Open the domain page for the tables involved.
+3. Confirm columns, nullability, and foreign keys against the live table definition below.
+4. Use support runbooks for remediation steps — this section is structural, not procedural.
+
+## Org tenancy
+
+Almost every operational table includes `organization_id` → `organizations.id`. Support queries must always filter by organization.
+
+Clerk organization mapping lives in `clerk_org_map` (`clerk_org_id` PK → `organizations.id`).
+

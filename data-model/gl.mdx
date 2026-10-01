@@ -1,0 +1,553 @@
+---
+title: "General ledger"
+description: "Chart of accounts, journals, fiscal periods, dimensions, terms, and ledgers."
+---
+
+Chart of accounts, journals, fiscal periods, dimensions, terms, and ledgers.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`finance_account_balances`](#finance-account-balances) | 3 | 0 |
+| [`finance_chartofaccounts_accounts`](#finance-chartofaccounts-accounts) | 15 | 1 |
+| [`finance_chartofaccounts_segments`](#finance-chartofaccounts-segments) | 9 | 2 |
+| [`finance_chartofaccounts_setup`](#finance-chartofaccounts-setup) | 8 | 1 |
+| [`finance_check_status_history`](#finance-check-status-history) | 8 | 2 |
+| [`finance_checks`](#finance-checks) | 15 | 3 |
+| [`finance_deferral_schedule_entries`](#finance-deferral-schedule-entries) | 9 | 2 |
+| [`finance_deferral_schedules`](#finance-deferral-schedules) | 13 | 1 |
+| [`finance_dimensions_associations`](#finance-dimensions-associations) | 8 | 3 |
+| [`finance_dimensions_setup`](#finance-dimensions-setup) | 11 | 1 |
+| [`finance_duplicate_account_codes`](#finance-duplicate-account-codes) | 4 | 0 |
+| [`finance_fiscalcalendar_events`](#finance-fiscalcalendar-events) | 7 | 2 |
+| [`finance_fiscalcalendar_periods`](#finance-fiscalcalendar-periods) | 21 | 2 |
+| [`finance_fiscalcalendar_setup`](#finance-fiscalcalendar-setup) | 12 | 1 |
+| [`finance_journalentries_entries`](#finance-journalentries-entries) | 16 | 1 |
+| [`finance_journalentries_lines`](#finance-journalentries-lines) | 13 | 2 |
+| [`finance_ledgers`](#finance-ledgers) | 7 | 1 |
+| [`finance_payment_method_cash_accounts`](#finance-payment-method-cash-accounts) | 5 | 3 |
+| [`finance_payment_method_gl_mappings`](#finance-payment-method-gl-mappings) | 7 | 5 |
+| [`finance_payment_method_providers`](#finance-payment-method-providers) | 9 | 2 |
+| [`finance_payment_methods`](#finance-payment-methods) | 11 | 1 |
+| [`finance_termscodes`](#finance-termscodes) | 11 | 1 |
+
+## `finance_account_balances`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | YES | — |
+| `account_code` | `text` | YES | — |
+| `balance` | `numeric` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `finance_chartofaccounts_accounts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `user_id` | `uuid` | YES | — |
+| `organization_id` | `uuid` | NO | — |
+| `natural` | `text` | NO | — |
+| `cost_center` | `text` | YES | — |
+| `region` | `text` | YES | — |
+| `name` | `text` | NO | ''::text |
+| `account_type` | `text` | NO | — |
+| `balance` | `numeric` | NO | 0 |
+| `active` | `boolean` | NO | true |
+| `posting` | `text` | NO | 'detail'::text |
+| `dimensions` | `jsonb` | NO | '[]'::jsonb |
+| `created_at` | `timestamptz` | NO | now() |
+| `account_code` | `text` | YES | — |
+| `segment_values` | `jsonb` | NO | '{}'::jsonb |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_chartofaccounts_accounts_organization_id_fkey` |
+
+## `finance_chartofaccounts_segments`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `user_id` | `uuid` | YES | — |
+| `organization_id` | `uuid` | NO | — |
+| `segment_id` | `uuid` | NO | — |
+| `code` | `text` | NO | — |
+| `description` | `text` | NO | ''::text |
+| `account_type` | `text` | YES | — |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_chartofaccounts_segments_organization_id_fkey` |
+| `segment_id` | `finance_chartofaccounts_setup.id` | `finance_chartofaccounts_segments_segment_id_fkey` |
+
+## `finance_chartofaccounts_setup`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `user_id` | `uuid` | YES | — |
+| `organization_id` | `uuid` | NO | — |
+| `segment_name` | `text` | NO | — |
+| `segment_order` | `smallint` | NO | — |
+| `segment_length` | `smallint` | NO | — |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_chartofaccounts_setup_organization_id_fkey` |
+
+## `finance_check_status_history`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `check_id` | `uuid` | NO | — |
+| `old_status` | `text` | YES | — |
+| `new_status` | `text` | NO | — |
+| `changed_by` | `text` | NO | — |
+| `reason` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `check_id` | `finance_checks.id` | `finance_check_status_history_check_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_check_status_history_organization_id_fkey` |
+
+## `finance_checks`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `bank_account_id` | `uuid` | NO | — |
+| `check_number` | `text` | NO | — |
+| `payee_name` | `text` | NO | — |
+| `amount` | `numeric` | NO | — |
+| `issue_date` | `date` | NO | — |
+| `memo` | `text` | YES | — |
+| `status` | `text` | NO | 'issued'::text |
+| `voided_at` | `timestamptz` | YES | — |
+| `void_reason` | `text` | YES | — |
+| `source_payment_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `last_issue_batch_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_account_id` | `finance_bank_accounts.id` | `finance_checks_bank_account_id_fkey` |
+| `last_issue_batch_id` | `positive_pay_issue_batches.id` | `finance_checks_last_issue_batch_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_checks_organization_id_fkey` |
+
+## `finance_deferral_schedule_entries`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `schedule_id` | `uuid` | NO | — |
+| `period_number` | `integer` | NO | — |
+| `entry_date` | `date` | NO | — |
+| `amount` | `numeric` | NO | — |
+| `journal_entry_code` | `text` | NO | — |
+| `status` | `text` | NO | 'posted'::text |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_deferral_schedule_entries_organization_id_fkey` |
+| `schedule_id` | `finance_deferral_schedules.id` | `finance_deferral_schedule_entries_schedule_id_fkey` |
+
+## `finance_deferral_schedules`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `source_type` | `text` | NO | — |
+| `source_id` | `uuid` | NO | — |
+| `source_number` | `text` | NO | — |
+| `deferral_type` | `text` | NO | — |
+| `total_amount` | `numeric` | NO | — |
+| `deferred_account_code` | `text` | YES | — |
+| `recognition_start_date` | `date` | NO | — |
+| `periods` | `integer` | NO | 12 |
+| `status` | `text` | NO | 'active'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_deferral_schedules_organization_id_fkey` |
+
+## `finance_dimensions_associations`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `user_id` | `uuid` | YES | — |
+| `organization_id` | `uuid` | NO | — |
+| `dimension_id` | `uuid` | NO | — |
+| `segment_name` | `text` | NO | — |
+| `scope_mode` | `text` | NO | 'all'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `segment_value_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `dimension_id` | `finance_dimensions_setup.id` | `finance_dimensions_associations_dimension_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_dimensions_associations_organization_id_fkey` |
+| `segment_value_id` | `finance_chartofaccounts_segments.id` | `finance_dimensions_associations_segment_value_id_fkey` |
+
+## `finance_dimensions_setup`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `user_id` | `uuid` | YES | — |
+| `organization_id` | `uuid` | NO | — |
+| `code` | `text` | NO | — |
+| `name` | `text` | NO | ''::text |
+| `required` | `boolean` | NO | false |
+| `source_kind` | `text` | NO | 'custom'::text |
+| `master_entity` | `text` | YES | — |
+| `custom_values` | `jsonb` | NO | '[]'::jsonb |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_dimensions_setup_organization_id_fkey` |
+
+## `finance_duplicate_account_codes`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | YES | — |
+| `account_code` | `text` | YES | — |
+| `row_count` | `bigint` | YES | — |
+| `account_ids` | `_uuid[]` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `finance_fiscalcalendar_events`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `period_id` | `uuid` | NO | — |
+| `action` | `text` | NO | — |
+| `reason` | `text` | YES | — |
+| `actor_id` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_fiscalcalendar_events_organization_id_fkey` |
+| `period_id` | `finance_fiscalcalendar_periods.id` | `finance_fiscalcalendar_events_period_id_fkey` |
+
+## `finance_fiscalcalendar_periods`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `user_id` | `uuid` | YES | — |
+| `organization_id` | `uuid` | NO | — |
+| `setup_id` | `uuid` | NO | — |
+| `period_number` | `smallint` | NO | — |
+| `name` | `text` | NO | — |
+| `start_date` | `date` | NO | — |
+| `end_date` | `date` | NO | — |
+| `status` | `text` | NO | 'future'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `gl_open` | `boolean` | NO | true |
+| `ap_open` | `boolean` | NO | true |
+| `ar_open` | `boolean` | NO | true |
+| `inventory_open` | `boolean` | NO | true |
+| `cash_open` | `boolean` | NO | true |
+| `closed_at` | `timestamptz` | YES | — |
+| `closed_by` | `text` | YES | — |
+| `locked_at` | `timestamptz` | YES | — |
+| `locked_by` | `text` | YES | — |
+| `reopened_at` | `timestamptz` | YES | — |
+| `reopened_by` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_fiscalcalendar_periods_organization_id_fkey` |
+| `setup_id` | `finance_fiscalcalendar_setup.id` | `finance_fiscalcalendar_periods_setup_id_fkey` |
+
+## `finance_fiscalcalendar_setup`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `user_id` | `uuid` | YES | — |
+| `organization_id` | `uuid` | NO | — |
+| `calendar_type` | `text` | NO | 'calendar'::text |
+| `fiscal_year` | `integer` | NO | — |
+| `start_month` | `smallint` | NO | 1 |
+| `close_by_business_day` | `smallint` | NO | 5 |
+| `auto_close` | `boolean` | NO | true |
+| `close_cutoff_time` | `time without time zone` | NO | '23:59:00'::time without time zone |
+| `allow_post_close_adjustments` | `boolean` | NO | true |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_fiscalcalendar_setup_organization_id_fkey` |
+
+## `finance_journalentries_entries`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `entry_code` | `text` | NO | — |
+| `date` | `date` | NO | — |
+| `reference` | `text` | NO | ''::text |
+| `memo` | `text` | NO | ''::text |
+| `status` | `text` | NO | 'draft'::text |
+| `reversing` | `boolean` | NO | false |
+| `related_entry_ids` | `_text[]` | NO | '{}'::text[] |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `source_type` | `text` | YES | — |
+| `source_id` | `uuid` | YES | — |
+| `idempotency_key` | `text` | YES | — |
+| `auto_reverse` | `boolean` | NO | false |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_journalentries_entries_organization_id_fkey` |
+
+## `finance_journalentries_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `entry_id` | `uuid` | NO | — |
+| `line_order` | `smallint` | NO | 0 |
+| `account_code` | `text` | NO | ''::text |
+| `debit` | `numeric` | NO | 0 |
+| `credit` | `numeric` | NO | 0 |
+| `description` | `text` | NO | ''::text |
+| `dimensions` | `jsonb` | NO | '{}'::jsonb |
+| `created_at` | `timestamptz` | NO | now() |
+| `item_code` | `text` | YES | — |
+| `segment_values` | `jsonb` | NO | '{}'::jsonb |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `entry_id` | `finance_journalentries_entries.id` | `finance_journalentries_lines_entry_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_journalentries_lines_organization_id_fkey` |
+
+## `finance_ledgers`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `code` | `text` | NO | — |
+| `name` | `text` | NO | — |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_ledgers_organization_id_fkey` |
+
+## `finance_payment_method_cash_accounts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | NO | — |
+| `payment_method_id` | `uuid` | NO | — |
+| `cash_account_id` | `uuid` | NO | — |
+| `is_default` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `cash_account_id` | `finance_chartofaccounts_accounts.id` | `finance_payment_method_cash_accounts_cash_account_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_payment_method_cash_accounts_organization_id_fkey` |
+| `payment_method_id` | `finance_payment_methods.id` | `finance_payment_method_cash_accounts_payment_method_id_fkey` |
+
+## `finance_payment_method_gl_mappings`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | NO | — |
+| `payment_method_id` | `uuid` | NO | — |
+| `cash_account_id` | `uuid` | YES | — |
+| `clearing_account_id` | `uuid` | YES | — |
+| `fee_account_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `cash_account_id` | `finance_chartofaccounts_accounts.id` | `finance_payment_method_gl_mappings_cash_account_id_fkey` |
+| `clearing_account_id` | `finance_chartofaccounts_accounts.id` | `finance_payment_method_gl_mappings_clearing_account_id_fkey` |
+| `fee_account_id` | `finance_chartofaccounts_accounts.id` | `finance_payment_method_gl_mappings_fee_account_id_fkey` |
+| `organization_id` | `organizations.id` | `finance_payment_method_gl_mappings_organization_id_fkey` |
+| `payment_method_id` | `finance_payment_methods.id` | `finance_payment_method_gl_mappings_payment_method_id_fkey` |
+
+## `finance_payment_method_providers`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `payment_method_id` | `uuid` | NO | — |
+| `provider` | `text` | NO | — |
+| `provider_method_code` | `text` | NO | — |
+| `configuration` | `jsonb` | NO | '{}'::jsonb |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_payment_method_providers_organization_id_fkey` |
+| `payment_method_id` | `finance_payment_methods.id` | `finance_payment_method_providers_payment_method_id_fkey` |
+
+## `finance_payment_methods`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `code` | `text` | NO | — |
+| `name` | `text` | NO | — |
+| `description` | `text` | NO | ''::text |
+| `ap_enabled` | `boolean` | NO | true |
+| `ar_enabled` | `boolean` | NO | true |
+| `active` | `boolean` | NO | true |
+| `system_defined` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_payment_methods_organization_id_fkey` |
+
+## `finance_termscodes`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `code` | `text` | NO | — |
+| `description` | `text` | NO | ''::text |
+| `net_days` | `integer` | NO | 30 |
+| `discount_percent` | `numeric` | NO | 0 |
+| `discount_days` | `integer` | NO | 0 |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `finance_termscodes_organization_id_fkey` |
+

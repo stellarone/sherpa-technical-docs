@@ -7,36 +7,76 @@
     "light": "#A78AFF",
     "dark": "#3E1AD1"
   },
+  "favicon": "/favicon.svg",
   "navigation": {
     "pages": [
       {
-        "group": "Getting Started",
+        "group": "Start here",
         "pages": [
           "index",
-          "quickstart"
+          "orientation/overview",
+          "orientation/terminology",
+          "orientation/systems-map"
+        ]
+      },
+      {
+        "group": "Support workflows",
+        "pages": [
+          "support/intake",
+          "support/safe-investigation",
+          "support/escalation"
+        ]
+      },
+      {
+        "group": "Troubleshooting",
+        "pages": [
+          "troubleshooting/overview",
+          "troubleshooting/bank-reconciliation",
+          "troubleshooting/accounts-payable",
+          "troubleshooting/accounts-receivable",
+          "troubleshooting/general-ledger",
+          "troubleshooting/inventory",
+          "troubleshooting/integrations"
+        ]
+      },
+      {
+        "group": "Data model",
+        "pages": [
+          "data-model/overview",
+          "data-model/transaction-traces",
+          "data-model/table-index",
+          "data-model/platform",
+          "data-model/ar",
+          "data-model/ap",
+          "data-model/gl",
+          "data-model/bank",
+          "data-model/inventory",
+          "data-model/orders-fulfillment",
+          "data-model/integrations",
+          "data-model/history",
+          "data-model/other"
+        ]
+      },
+      {
+        "group": "Integrations",
+        "pages": [
+          "integrations/overview",
+          "integrations/plaid",
+          "integrations/trackstar-shopify",
+          "integrations/easypost"
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
   },
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:support@mintlify.com"
+        "label": "Supabase",
+        "href": "https://supabase.com/dashboard/project/linqdstukqayvducxguc"
       }
     ],
     "primary": {
@@ -69,6 +109,11 @@
   "thumbnails": {
     "fonts": {
       "family": "Poppins"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/stellarone/sherpa-technical-docs"
     }
   }
 }

@@ -1,0 +1,763 @@
+---
+title: "Inventory and items"
+description: "Items, warehouses, bins, inventory transactions, counts, and landed cost."
+---
+
+Items, warehouses, bins, inventory transactions, counts, and landed cost.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`inventory_adjustment_reasons`](#inventory-adjustment-reasons) | 10 | 2 |
+| [`inventory_count_lines`](#inventory-count-lines) | 13 | 4 |
+| [`inventory_counts`](#inventory-counts) | 20 | 3 |
+| [`inventory_on_hand_by_bin`](#inventory-on-hand-by-bin) | 5 | 0 |
+| [`inventory_on_hand_by_item`](#inventory-on-hand-by-item) | 3 | 0 |
+| [`inventory_on_hand_by_warehouse`](#inventory-on-hand-by-warehouse) | 4 | 0 |
+| [`inventory_transaction_allocations`](#inventory-transaction-allocations) | 8 | 5 |
+| [`inventory_transaction_doc_lines`](#inventory-transaction-doc-lines) | 14 | 4 |
+| [`inventory_transaction_docs`](#inventory-transaction-docs) | 18 | 4 |
+| [`inventory_transactions`](#inventory-transactions) | 17 | 5 |
+| [`item_actions`](#item-actions) | 13 | 1 |
+| [`item_categories`](#item-categories) | 9 | 4 |
+| [`item_cost_movements`](#item-cost-movements) | 14 | 3 |
+| [`item_uom_conversions`](#item-uom-conversions) | 8 | 3 |
+| [`items`](#items) | 30 | 11 |
+| [`landed_cost_allocation_lines`](#landed-cost-allocation-lines) | 17 | 7 |
+| [`landed_cost_components`](#landed-cost-components) | 11 | 2 |
+| [`landed_cost_event_components`](#landed-cost-event-components) | 10 | 3 |
+| [`landed_cost_event_receipts`](#landed-cost-event-receipts) | 5 | 3 |
+| [`landed_cost_events`](#landed-cost-events) | 14 | 1 |
+| [`landed_cost_events_list`](#landed-cost-events-list) | 18 | 0 |
+| [`landed_cost_receipt_aging`](#landed-cost-receipt-aging) | 11 | 0 |
+| [`units_of_measure`](#units-of-measure) | 9 | 1 |
+| [`warehouse_bin_segment_values`](#warehouse-bin-segment-values) | 12 | 3 |
+| [`warehouse_bin_segments`](#warehouse-bin-segments) | 11 | 2 |
+| [`warehouse_bins`](#warehouse-bins) | 12 | 2 |
+| [`warehouses`](#warehouses) | 23 | 1 |
+
+## `inventory_adjustment_reasons`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `code` | `text` | NO | — |
+| `label` | `text` | NO | — |
+| `gl_account_id` | `uuid` | YES | — |
+| `sort_order` | `integer` | NO | 100 |
+| `active` | `boolean` | NO | true |
+| `system_defined` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `gl_account_id` | `finance_chartofaccounts_accounts.id` | `inventory_adjustment_reasons_gl_account_id_fkey` |
+| `organization_id` | `organizations.id` | `inventory_adjustment_reasons_organization_id_fkey` |
+
+## `inventory_count_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `count_id` | `uuid` | NO | — |
+| `line_number` | `integer` | NO | — |
+| `item_id` | `uuid` | NO | — |
+| `warehouse_bin_id` | `uuid` | YES | — |
+| `system_quantity` | `numeric` | NO | 0 |
+| `counted_quantity` | `numeric` | YES | — |
+| `variance_quantity` | `numeric` | YES | — |
+| `unit_cost` | `numeric` | YES | — |
+| `notes` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `count_id` | `inventory_counts.id` | `inventory_count_lines_count_id_fkey` |
+| `item_id` | `items.id` | `inventory_count_lines_item_id_fkey` |
+| `organization_id` | `organizations.id` | `inventory_count_lines_organization_id_fkey` |
+| `warehouse_bin_id` | `warehouse_bins.id` | `inventory_count_lines_warehouse_bin_id_fkey` |
+
+## `inventory_counts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `count_number` | `text` | NO | ''::text |
+| `count_type` | `text` | NO | 'cycle'::text |
+| `status` | `text` | NO | 'draft'::text |
+| `count_date` | `date` | NO | CURRENT_DATE |
+| `warehouse_id` | `uuid` | NO | — |
+| `variance_account_id` | `uuid` | YES | — |
+| `reason` | `text` | YES | — |
+| `reference` | `text` | YES | — |
+| `notes` | `text` | YES | — |
+| `journal_entry_id` | `uuid` | YES | — |
+| `submitted_at` | `timestamptz` | YES | — |
+| `approved_at` | `timestamptz` | YES | — |
+| `approved_by` | `text` | YES | — |
+| `posted_at` | `timestamptz` | YES | — |
+| `cancelled_at` | `timestamptz` | YES | — |
+| `created_by` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `inventory_counts_organization_id_fkey` |
+| `variance_account_id` | `finance_chartofaccounts_accounts.id` | `inventory_counts_variance_account_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `inventory_counts_warehouse_id_fkey` |
+
+## `inventory_on_hand_by_bin`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | YES | — |
+| `item_id` | `uuid` | YES | — |
+| `warehouse_id` | `uuid` | YES | — |
+| `warehouse_bin_id` | `uuid` | YES | — |
+| `on_hand` | `numeric` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `inventory_on_hand_by_item`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | YES | — |
+| `item_id` | `uuid` | YES | — |
+| `total_on_hand` | `numeric` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `inventory_on_hand_by_warehouse`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | YES | — |
+| `item_id` | `uuid` | YES | — |
+| `warehouse_id` | `uuid` | YES | — |
+| `on_hand` | `numeric` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `inventory_transaction_allocations`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `inventory_transaction_id` | `uuid` | NO | — |
+| `item_id` | `uuid` | NO | — |
+| `warehouse_id` | `uuid` | NO | — |
+| `warehouse_bin_id` | `uuid` | NO | — |
+| `quantity` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `inventory_transaction_id` | `inventory_transactions.id` | `inventory_transaction_allocations_inventory_transaction_id_fkey` |
+| `item_id` | `items.id` | `inventory_transaction_allocations_item_id_fkey` |
+| `organization_id` | `organizations.id` | `inventory_transaction_allocations_organization_id_fkey` |
+| `warehouse_bin_id` | `warehouse_bins.id` | `inventory_transaction_allocations_warehouse_bin_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `inventory_transaction_allocations_warehouse_id_fkey` |
+
+## `inventory_transaction_doc_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `doc_id` | `uuid` | NO | — |
+| `line_number` | `integer` | NO | — |
+| `item_id` | `uuid` | NO | — |
+| `quantity` | `numeric` | NO | — |
+| `from_bin_allocations` | `jsonb` | NO | '[]'::jsonb |
+| `to_bin_allocations` | `jsonb` | NO | '[]'::jsonb |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `uom_id` | `uuid` | YES | — |
+| `qty_entered` | `numeric` | YES | — |
+| `uom_conversion_to_base` | `numeric` | YES | — |
+| `unit_cost` | `numeric` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `doc_id` | `inventory_transaction_docs.id` | `inventory_transaction_doc_lines_doc_id_fkey` |
+| `item_id` | `items.id` | `inventory_transaction_doc_lines_item_id_fkey` |
+| `organization_id` | `organizations.id` | `inventory_transaction_doc_lines_organization_id_fkey` |
+| `uom_id` | `units_of_measure.id` | `inventory_transaction_doc_lines_uom_id_fkey` |
+
+## `inventory_transaction_docs`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `doc_number` | `text` | NO | ''::text |
+| `doc_type` | `text` | NO | — |
+| `status` | `text` | NO | 'draft'::text |
+| `transaction_date` | `date` | NO | CURRENT_DATE |
+| `from_warehouse_id` | `uuid` | YES | — |
+| `to_warehouse_id` | `uuid` | YES | — |
+| `reason` | `text` | YES | — |
+| `reference` | `text` | YES | — |
+| `notes` | `text` | YES | — |
+| `posted_at` | `timestamptz` | YES | — |
+| `voided_at` | `timestamptz` | YES | — |
+| `created_by` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `journal_entry_id` | `uuid` | YES | — |
+| `reversal_journal_entry_code` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `from_warehouse_id` | `warehouses.id` | `inventory_transaction_docs_from_warehouse_id_fkey` |
+| `journal_entry_id` | `finance_journalentries_entries.id` | `inventory_transaction_docs_journal_entry_id_fkey` |
+| `organization_id` | `organizations.id` | `inventory_transaction_docs_organization_id_fkey` |
+| `to_warehouse_id` | `warehouses.id` | `inventory_transaction_docs_to_warehouse_id_fkey` |
+
+## `inventory_transactions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `item_id` | `uuid` | NO | — |
+| `warehouse_id` | `uuid` | NO | — |
+| `movement_type` | `text` | NO | — |
+| `quantity` | `numeric` | NO | — |
+| `reason` | `text` | YES | — |
+| `reference` | `text` | YES | — |
+| `journal_entry_id` | `uuid` | YES | — |
+| `source_type` | `text` | YES | — |
+| `source_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `created_by` | `text` | YES | — |
+| `origin` | `text` | NO | 'operational'::text |
+| `import_job_id` | `uuid` | YES | — |
+| `unit_cost` | `numeric` | YES | — |
+| `transaction_date` | `date` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `inventory_transactions_import_job_id_fkey` |
+| `item_id` | `items.id` | `inventory_transactions_item_id_fkey` |
+| `journal_entry_id` | `finance_journalentries_entries.id` | `inventory_transactions_journal_entry_id_fkey` |
+| `organization_id` | `organizations.id` | `inventory_transactions_organization_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `inventory_transactions_warehouse_id_fkey` |
+
+## `item_actions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `item_id` | `uuid` | NO | — |
+| `action_type` | `text` | NO | — |
+| `reason` | `text` | NO | — |
+| `before_snapshot` | `jsonb` | NO | — |
+| `after_snapshot` | `jsonb` | NO | — |
+| `actor_id` | `text` | YES | — |
+| `actor_name` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `source` | `text` | NO | 'ui'::text |
+| `source_reference` | `text` | YES | — |
+| `batch_id` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `item_actions_organization_id_fkey` |
+
+## `item_categories`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `name` | `text` | NO | — |
+| `gl_inventory_account_id` | `uuid` | YES | — |
+| `gl_cogs_account_id` | `uuid` | YES | — |
+| `gl_revenue_account_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `default_costing_method` | `text` | NO | 'standard'::text |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `gl_cogs_account_id` | `finance_chartofaccounts_accounts.id` | `item_categories_gl_cogs_account_id_fkey` |
+| `gl_inventory_account_id` | `finance_chartofaccounts_accounts.id` | `item_categories_gl_inventory_account_id_fkey` |
+| `gl_revenue_account_id` | `finance_chartofaccounts_accounts.id` | `item_categories_gl_revenue_account_id_fkey` |
+| `organization_id` | `organizations.id` | `item_categories_organization_id_fkey` |
+
+## `item_cost_movements`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `item_id` | `uuid` | NO | — |
+| `inventory_transaction_id` | `uuid` | YES | — |
+| `movement_kind` | `text` | NO | — |
+| `quantity` | `numeric` | NO | 0 |
+| `unit_cost` | `numeric` | YES | — |
+| `extended_value` | `numeric` | NO | — |
+| `qty_after` | `numeric` | NO | — |
+| `average_cost_after` | `numeric` | YES | — |
+| `inventory_value_after` | `numeric` | NO | — |
+| `source_type` | `text` | YES | — |
+| `source_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `inventory_transaction_id` | `inventory_transactions.id` | `item_cost_movements_inventory_transaction_id_fkey` |
+| `item_id` | `items.id` | `item_cost_movements_item_id_fkey` |
+| `organization_id` | `organizations.id` | `item_cost_movements_organization_id_fkey` |
+
+## `item_uom_conversions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `item_id` | `uuid` | NO | — |
+| `uom_id` | `uuid` | NO | — |
+| `conversion_factor` | `numeric` | NO | — |
+| `sku` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `item_id` | `items.id` | `item_uom_conversions_item_id_fkey` |
+| `organization_id` | `organizations.id` | `item_uom_conversions_organization_id_fkey` |
+| `uom_id` | `units_of_measure.id` | `item_uom_conversions_uom_id_fkey` |
+
+## `items`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `sku` | `text` | NO | — |
+| `name` | `text` | NO | — |
+| `description` | `text` | YES | — |
+| `item_type` | `text` | NO | 'stock'::text |
+| `sales_price` | `numeric` | YES | — |
+| `costing_method` | `text` | NO | 'standard'::text |
+| `standard_cost` | `numeric` | YES | — |
+| `gl_inventory_account_id` | `uuid` | YES | — |
+| `gl_cogs_account_id` | `uuid` | YES | — |
+| `gl_revenue_account_id` | `uuid` | YES | — |
+| `category_id` | `uuid` | NO | — |
+| `external_id` | `text` | YES | — |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `preferred_supplier_id` | `uuid` | YES | — |
+| `min_order_qty` | `numeric` | YES | — |
+| `max_order_qty` | `numeric` | YES | — |
+| `lead_time_days` | `integer` | YES | — |
+| `base_uom_id` | `uuid` | YES | — |
+| `purchase_uom_id` | `uuid` | YES | — |
+| `sales_uom_id` | `uuid` | YES | — |
+| `average_cost` | `numeric` | YES | — |
+| `inventory_value` | `numeric` | NO | 0 |
+| `unit_weight` | `numeric` | YES | — |
+| `unit_volume` | `numeric` | YES | — |
+| `weight_uom_id` | `uuid` | YES | — |
+| `volume_uom_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `base_uom_id` | `units_of_measure.id` | `items_base_uom_id_fkey` |
+| `category_id` | `item_categories.id` | `items_category_id_fkey` |
+| `gl_cogs_account_id` | `finance_chartofaccounts_accounts.id` | `items_gl_cogs_account_id_fkey` |
+| `gl_inventory_account_id` | `finance_chartofaccounts_accounts.id` | `items_gl_inventory_account_id_fkey` |
+| `gl_revenue_account_id` | `finance_chartofaccounts_accounts.id` | `items_gl_revenue_account_id_fkey` |
+| `organization_id` | `organizations.id` | `items_organization_id_fkey` |
+| `preferred_supplier_id` | `ap_suppliers.id` | `items_preferred_supplier_id_fkey` |
+| `purchase_uom_id` | `units_of_measure.id` | `items_purchase_uom_id_fkey` |
+| `sales_uom_id` | `units_of_measure.id` | `items_sales_uom_id_fkey` |
+| `volume_uom_id` | `units_of_measure.id` | `items_volume_uom_id_fkey` |
+| `weight_uom_id` | `units_of_measure.id` | `items_weight_uom_id_fkey` |
+
+## `landed_cost_allocation_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `event_id` | `uuid` | NO | — |
+| `event_component_id` | `uuid` | NO | — |
+| `component_id` | `uuid` | NO | — |
+| `receipt_id` | `uuid` | NO | — |
+| `receipt_line_id` | `uuid` | NO | — |
+| `item_id` | `uuid` | NO | — |
+| `allocation_basis` | `text` | NO | — |
+| `basis_factor` | `numeric` | NO | 0 |
+| `allocated_estimate` | `numeric` | NO | 0 |
+| `allocated_actual` | `numeric` | YES | — |
+| `qty_received` | `numeric` | NO | — |
+| `qty_on_hand_at_post` | `numeric` | YES | — |
+| `qty_sold_at_post` | `numeric` | YES | — |
+| `phase` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `component_id` | `landed_cost_components.id` | `landed_cost_allocation_lines_component_id_fkey` |
+| `event_component_id` | `landed_cost_event_components.id` | `landed_cost_allocation_lines_event_component_id_fkey` |
+| `event_id` | `landed_cost_events.id` | `landed_cost_allocation_lines_event_id_fkey` |
+| `item_id` | `items.id` | `landed_cost_allocation_lines_item_id_fkey` |
+| `organization_id` | `organizations.id` | `landed_cost_allocation_lines_organization_id_fkey` |
+| `receipt_id` | `ap_receipts.id` | `landed_cost_allocation_lines_receipt_id_fkey` |
+| `receipt_line_id` | `ap_receipt_lines.id` | `landed_cost_allocation_lines_receipt_line_id_fkey` |
+
+## `landed_cost_components`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `code` | `text` | NO | — |
+| `name` | `text` | NO | — |
+| `allocation_basis` | `text` | NO | 'value'::text |
+| `gl_accrual_account_id` | `uuid` | YES | — |
+| `sort_order` | `integer` | NO | 100 |
+| `active` | `boolean` | NO | true |
+| `system_defined` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `gl_accrual_account_id` | `finance_chartofaccounts_accounts.id` | `landed_cost_components_gl_accrual_account_id_fkey` |
+| `organization_id` | `organizations.id` | `landed_cost_components_organization_id_fkey` |
+
+## `landed_cost_event_components`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `event_id` | `uuid` | NO | — |
+| `component_id` | `uuid` | NO | — |
+| `estimate_amount` | `numeric` | NO | 0 |
+| `actual_amount` | `numeric` | YES | — |
+| `source_document_ref` | `text` | NO | ''::text |
+| `allocation_basis_override` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `component_id` | `landed_cost_components.id` | `landed_cost_event_components_component_id_fkey` |
+| `event_id` | `landed_cost_events.id` | `landed_cost_event_components_event_id_fkey` |
+| `organization_id` | `organizations.id` | `landed_cost_event_components_organization_id_fkey` |
+
+## `landed_cost_event_receipts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `event_id` | `uuid` | NO | — |
+| `receipt_id` | `uuid` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `event_id` | `landed_cost_events.id` | `landed_cost_event_receipts_event_id_fkey` |
+| `organization_id` | `organizations.id` | `landed_cost_event_receipts_organization_id_fkey` |
+| `receipt_id` | `ap_receipts.id` | `landed_cost_event_receipts_receipt_id_fkey` |
+
+## `landed_cost_events`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `event_number` | `text` | NO | ''::text |
+| `status` | `text` | NO | 'draft'::text |
+| `event_date` | `date` | NO | CURRENT_DATE |
+| `source_document_ref` | `text` | NO | ''::text |
+| `notes` | `text` | YES | — |
+| `estimate_journal_entry_code` | `text` | YES | — |
+| `actual_journal_entry_code` | `text` | YES | — |
+| `estimate_posted_at` | `timestamptz` | YES | — |
+| `actual_posted_at` | `timestamptz` | YES | — |
+| `created_by` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `landed_cost_events_organization_id_fkey` |
+
+## `landed_cost_events_list`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | YES | — |
+| `event_id` | `uuid` | YES | — |
+| `event_number` | `text` | YES | — |
+| `event_status` | `text` | YES | — |
+| `event_date` | `date` | YES | — |
+| `source_document_ref` | `text` | YES | — |
+| `estimate_journal_entry_code` | `text` | YES | — |
+| `actual_journal_entry_code` | `text` | YES | — |
+| `estimate_posted_at` | `timestamptz` | YES | — |
+| `actual_posted_at` | `timestamptz` | YES | — |
+| `receipt_count` | `integer` | YES | — |
+| `receipt_numbers` | `_text[]` | YES | — |
+| `receipt_ids` | `_text[]` | YES | — |
+| `estimate_total` | `numeric` | YES | — |
+| `actual_total` | `numeric` | YES | — |
+| `component_count` | `integer` | YES | — |
+| `components_with_actual` | `integer` | YES | — |
+| `trueup_status` | `text` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `landed_cost_receipt_aging`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | YES | — |
+| `receipt_id` | `uuid` | YES | — |
+| `receipt_number` | `text` | YES | — |
+| `receipt_date` | `date` | YES | — |
+| `supplier_id` | `uuid` | YES | — |
+| `supplier_name` | `text` | YES | — |
+| `receipt_status` | `text` | YES | — |
+| `allocation_status` | `text` | YES | — |
+| `days_waiting` | `integer` | YES | — |
+| `estimate_total` | `numeric` | YES | — |
+| `actual_total` | `numeric` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `units_of_measure`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `code` | `text` | NO | — |
+| `name` | `text` | NO | — |
+| `description` | `text` | YES | — |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `dimension` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `units_of_measure_organization_id_fkey` |
+
+## `warehouse_bin_segment_values`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `segment_id` | `uuid` | NO | — |
+| `value` | `text` | YES | — |
+| `display_order` | `smallint` | NO | 1 |
+| `created_at` | `timestamptz` | NO | now() |
+| `warehouse_id` | `uuid` | YES | — |
+| `code` | `text` | NO | ''::text |
+| `description` | `text` | NO | ''::text |
+| `sort_order` | `smallint` | NO | 0 |
+| `active` | `boolean` | NO | true |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `warehouse_bin_segment_values_organization_id_fkey` |
+| `segment_id` | `warehouse_bin_segments.id` | `warehouse_bin_segment_values_segment_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `warehouse_bin_segment_values_warehouse_id_fkey` |
+
+## `warehouse_bin_segments`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `warehouse_id` | `uuid` | NO | — |
+| `name` | `text` | NO | — |
+| `display_order` | `smallint` | NO | 1 |
+| `separator` | `text` | NO | '-'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `length` | `smallint` | NO | 1 |
+| `sort_order` | `smallint` | NO | 0 |
+| `active` | `boolean` | NO | true |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `warehouse_bin_segments_organization_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `warehouse_bin_segments_warehouse_id_fkey` |
+
+## `warehouse_bins`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `warehouse_id` | `uuid` | NO | — |
+| `code` | `text` | NO | — |
+| `name` | `text` | YES | — |
+| `active` | `boolean` | NO | true |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `aisle` | `text` | NO | ''::text |
+| `rack` | `text` | NO | ''::text |
+| `segment_values` | `jsonb` | NO | '{}'::jsonb |
+| `is_default` | `boolean` | NO | false |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `warehouse_bins_organization_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `warehouse_bins_warehouse_id_fkey` |
+
+## `warehouses`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `name` | `text` | NO | — |
+| `location_type` | `text` | NO | 'warehouse'::text |
+| `active` | `boolean` | NO | true |
+| `address_line1` | `text` | YES | — |
+| `address_line2` | `text` | YES | — |
+| `city` | `text` | YES | — |
+| `region` | `text` | YES | — |
+| `postal_code` | `text` | YES | — |
+| `country` | `text` | YES | — |
+| `external_id` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `code` | `text` | YES | — |
+| `contact_name` | `text` | YES | — |
+| `contact_email` | `text` | YES | — |
+| `contact_phone` | `text` | YES | — |
+| `is_default_receiving` | `boolean` | NO | false |
+| `is_default_shipping` | `boolean` | NO | false |
+| `bin_locations_enabled` | `boolean` | NO | false |
+| `allow_negative_bin_qty` | `boolean` | NO | false |
+| `bin_inventory_initialized_at` | `timestamptz` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `warehouses_organization_id_fkey` |
+

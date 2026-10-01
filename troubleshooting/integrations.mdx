@@ -1,0 +1,106 @@
+---
+title: "Integrations"
+description: "Runbook for Trackstar/Shopify cart sync, data connections, and EasyPost shipping."
+---
+
+## Symptoms
+
+- Shopify/Trackstar orders not creating sales orders
+- `cart_ingest_exceptions` piling up
+- Inventory sync outbox not draining
+- EasyPost label purchase / tracking webhook failures
+- Data connection stuck `error` or sync not ready
+
+## Key tables
+
+| Table | Role |
+| --- | --- |
+| `data_connections` | Provider connection (`cart` / `wms` / `carrier`) |
+| `cart_integration_settings` | Cart defaults (e.g. customer group) |
+| `cart_channel_maps` | Channel mapping |
+| `cart_ingest_exceptions` | Failed inbound events |
+| `cart_integration_activity` | Activity log |
+| `trackstar_inventory_sync_outbox` | Outbound inventory sync queue |
+| `trackstar_initial_sync_watchdog` | Initial sync health |
+| `trackstar_cart_reconciliation_cursors` | Reconciliation cursors |
+| `carrier_connections` | EasyPost carrier accounts |
+| `shipments` / `fulfillment_packages` | Labels and tracking |
+| `webhook_events` | Inbound webhook store |
+
+`data_connections.status`: `connected` · `disconnected` · `error`  
+`data_connections.integration_type`: `cart` · `wms` · `carrier`
+
+## Evidence queries
+
+```sql
+SELECT id, provider, system, integration_type, status, sync_status,
+       external_connection_id, connected_at, disconnected_at, updated_at
+FROM data_connections
+WHERE organization_id = :org_id
+ORDER BY updated_at DESC;
+```
+
+```sql
+SELECT id, event_type, stage, status, reason, external_order_id, map_type, source_key,
+       retry_count, next_retry_at, created_at
+FROM cart_ingest_exceptions
+WHERE organization_id = :org_id
+  AND status <> 'resolved'
+ORDER BY created_at DESC
+LIMIT 50;
+```
+
+```sql
+SELECT id, status, created_at, updated_at
+FROM trackstar_inventory_sync_outbox
+WHERE organization_id = :org_id
+ORDER BY created_at DESC
+LIMIT 50;
+```
+
+```sql
+SELECT id, carrier, nickname, status, easypost_carrier_account_id, updated_at
+FROM carrier_connections
+WHERE organization_id = :org_id;
+```
+
+## Common causes
+
+| Cause | Signal | Direction |
+| --- | --- | --- |
+| Missing channel map | Exception stage around mapping | Confirm `cart_channel_maps` / `confirm_cart_channel_map` |
+| SKU / item missing | Exception payload references unknown SKU | Create/map item, retry exception |
+| Sync not ready | Connection connected but sync flags false | Complete Trackstar readiness steps |
+| Outbox poison message | Same outbox row failing repeatedly | Inspect payload; pause + engineering |
+| EasyPost webhook mismatch | Org `easypost_webhook_id` unset/wrong | Rebind webhook for org |
+| Carrier account disconnected | `carrier_connections.status` not active | Reconnect BYO EasyPost account |
+
+## Remediation
+
+<Steps>
+  <Step title="Verify data_connections row">
+    Provider, type, status, and `sync_status` JSON before retrying events.
+  </Step>
+  <Step title="Triage exceptions oldest-first">
+    Resolve mapping defaults, then retry; avoid duplicate order creation.
+  </Step>
+  <Step title="Check downstream documents">
+    If SO exists, continue on fulfillment/AR — do not re-ingest blindly.
+  </Step>
+  <Step title="Shipping failures">
+    Confirm carrier connection + org EasyPost secret presence (not the secret value).
+  </Step>
+</Steps>
+
+## Escalate when
+
+- Need cursor rewind on Trackstar reconciliation
+- Webhook signature failures across many orgs
+- Suspected duplicate sales orders from retries
+
+## Related
+
+- [Integrations overview](/integrations/overview)
+- [Trackstar / Shopify](/integrations/trackstar-shopify)
+- [EasyPost](/integrations/easypost)
+- [Integration tables](/data-model/integrations)

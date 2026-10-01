@@ -1,0 +1,52 @@
+---
+title: "Safe investigation"
+description: "Read-only SQL patterns and mutation rules for Sherpa support."
+---
+
+## Rules
+
+1. Always filter by `organization_id`.
+2. Prefer `SELECT` — no `UPDATE`/`DELETE` without written approval.
+3. Never select secret payloads (`plaid_item_secrets`, vault decrypted values).
+4. Prefer RPCs and UI actions for remediation.
+5. For posted docs, reverse/void via product flows rather than editing balances.
+
+## Standard filters
+
+```sql
+-- Always start from org
+SELECT id, name, slug
+FROM organizations
+WHERE slug = :slug
+   OR id = :organization_id;
+```
+
+```sql
+-- Clerk mapping
+SELECT clerk_org_id, organization_id
+FROM clerk_org_map
+WHERE clerk_org_id = :clerk_org_id
+   OR organization_id = :organization_id;
+```
+
+## Redaction
+
+Before attaching query output to a ticket:
+
+- Remove emails/phones if not required
+- Remove account masks beyond last 4 if policy requires
+- Remove any token, secret id payload, or webhook key material
+- Keep document numbers and status fields — those are usually enough
+
+## Mutation approval checklist
+
+- [ ] Business owner approved the financial impact
+- [ ] Period module is open (or reopen approved)
+- [ ] Backup evidence captured (row snapshots)
+- [ ] Reverse path identified if the fix fails
+- [ ] Change logged in ticket with before/after statuses
+
+## Related
+
+- [Data model overview](/data-model/overview)
+- [Escalation](/support/escalation)
