@@ -1,13 +1,12 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "theme": "maple",
+  "name": "Sherpa Technical Docs",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#6345E8",
+    "light": "#A78AFF",
+    "dark": "#3E1AD1"
   },
-  "favicon": "/favicon.svg",
   "navigation": {
     "pages": [
       {
@@ -32,10 +31,6 @@
         }
       ]
     }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
   },
   "navbar": {
     "links": [
@@ -68,5 +63,14 @@
       "github": "https://github.com/mintlify",
       "linkedin": "https://linkedin.com/company/mintlify"
     }
+  },
+  "background": {
+    "color": {
+      "light": "#F2F1F6",
+      "dark": "#160B2D"
+    }
+  },
+  "fonts": {
+    "family": "Poppins"
   }
 }
