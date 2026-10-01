@@ -1,0 +1,37 @@
+---
+title: "Integrations overview"
+description: "Third-party connections used by Sherpa support: Plaid, Trackstar/Shopify, EasyPost."
+---
+
+Sherpa integrations fall into three support-facing families.
+
+<Columns cols={3}>
+  <Card title="Plaid" icon="building-columns" href="/integrations/plaid">
+    Bank account linking, transaction sync, statements, liabilities.
+  </Card>
+  <Card title="Trackstar / Shopify" icon="cart-shopping" href="/integrations/trackstar-shopify">
+    Cart ingest, channel maps, inventory sync outbox.
+  </Card>
+  <Card title="EasyPost" icon="truck" href="/integrations/easypost">
+    Carrier accounts, labels, tracking webhooks, freight accruals.
+  </Card>
+</Columns>
+
+## Shared primitives
+
+| Concept | Table / field | Notes |
+| --- | --- | --- |
+| Data connection | `data_connections` | Used for cart / WMS / carrier style providers |
+| Webhook event | `webhook_events` | Durable inbound event store |
+| Activity | `cart_integration_activity` | Human-readable integration activity |
+| Audit | `data_audit_events` | Configuration/activity auditing |
+
+## Support rules
+
+- Never paste access tokens, vault secret ids' payloads, or webhook signing secrets into tickets.
+- Prefer status fields (`status`, `sync_status`, exception `reason`) over opening vault contents.
+- After fixing mappings, retry **one** exception and confirm no duplicate `sales_orders.external_id`.
+
+## Related edge functions
+
+See [Systems map](/orientation/systems-map) for the Plaid and bank-rec function list. Cart/Trackstar and EasyPost logic is primarily database RPC + app/worker driven with supporting webhooks.

@@ -1,33 +1,32 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
-> For Mintlify product knowledge (components, configuration, writing standards),
-> install the Mintlify skill: `npx skills add https://mintlify.com/docs`
-
 # Documentation project instructions
 
 ## About this project
 
-- This is a documentation site built on [Mintlify](https://mintlify.com)
-- Pages are MDX files with YAML frontmatter
+- Internal Mintlify docs for **Sherpa** support
+- Pages are MDX with YAML frontmatter
 - Configuration lives in `docs.json`
-- Use the Mintlify MCP server, `https://mcp.mintlify.com`, to edit content and settings via MCP
-- Use the Mintlify docs MCP server, `https://www.mintlify.com/docs/mcp`, to query information about using Mintlify via MCP
+- Source app: https://github.com/stellarone/sherpa-e9c75a24
+- Supabase project: `linqdstukqayvducxguc` (name: `sherpa`)
 
 ## Terminology
 
-{/* Add product-specific terms and preferred usage */}
-{/* Example: Use "workspace" not "project", "member" not "user" */}
+- Use "organization" / "org" for tenancy
+- Use "customer" for AR parties (`ar_customers`)
+- Use "supplier" for AP parties (`ap_suppliers`)
+- Use "journal entry" / "JE" with `entry_code`
+- Prefer status values that match live check constraints
 
 ## Style preferences
-
-{/* Add any project-specific style rules below */}
 
 - Use active voice and second person ("you")
 - Keep sentences concise — one idea per sentence
 - Use sentence case for headings
 - Bold for UI elements: Click **Settings**
-- Code formatting for file names, commands, paths, and code references
+- Code formatting for file names, commands, paths, table/column names, and code references
 
 ## Content boundaries
 
-{/* Define what should and shouldn't be documented */}
-{/* Example: Don't document internal admin features */}
+- Internal support only — not customer-facing marketing
+- No secrets, tokens, vault payloads, or webhook signing keys
+- Data model docs must be generated from the **live** Postgres schema; migrations are secondary cross-check only
+- Do not document break-glass admin procedures that bypass RLS without escalation guidance

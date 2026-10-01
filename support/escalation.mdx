@@ -1,0 +1,43 @@
+---
+title: "Escalation"
+description: "When and how to escalate Sherpa issues to engineering."
+---
+
+## Escalate immediately when
+
+- Posted financials may be wrong across many documents
+- Suspected duplicate money movement (payments, labels, deposits)
+- Security / secret exposure concern
+- Period unlock required outside normal finance role process
+- Cursor / webhook rewinds needed for integrations
+
+## Escalation packet
+
+Include:
+
+1. Completed [intake](/support/intake) fields
+2. Org id + document ids
+3. Timeline (user action → error → your checks)
+4. Query outputs (redacted) proving current state
+5. Suspected code/RPC path if known
+6. Proposed fix options (A safe / B invasive) and recommended option
+
+## Do not escalate until
+
+- Org is identified
+- Matching runbook evidence queries were attempted
+- Period openness checked for financial posts
+- Duplicate-document search done for integration retries
+
+## Ownership hints
+
+| Area | Likely owner |
+| --- | --- |
+| RLS / org guard RPC | Platform / backend |
+| JE imbalance after product post | Finance backend |
+| Plaid token / webhook | Integrations |
+| Trackstar mapping exceptions at scale | Commerce integrations |
+| EasyPost BYO account | Shipping integrations |
+| UI-only defect with healthy DB | Frontend |
+
+Source app for engineering context: [stellarone/sherpa-e9c75a24](https://github.com/stellarone/sherpa-e9c75a24).

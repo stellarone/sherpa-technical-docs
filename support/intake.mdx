@@ -1,0 +1,53 @@
+---
+title: "Support intake"
+description: "How to intake, classify, and document a Sherpa support ticket."
+---
+
+## Intake template
+
+Copy this into the ticket:
+
+```md
+### Org
+- Clerk org id:
+- Sherpa organization_id / slug:
+- Environment: production
+
+### Reporter
+- Role (AP/AR/controller/ops/admin):
+- Contact:
+
+### Issue
+- Domain: bank | ap | ar | gl | inventory | integrations
+- Summary:
+- Started at (UTC):
+- UI error text:
+
+### Identifiers
+- Document numbers:
+- UUIDs:
+- External ids (Shopify/Plaid/tracking):
+
+### Impact
+- Blocked close? Y/N
+- Money movement at risk? Y/N
+- Workaround:
+```
+
+## Classification
+
+| If the user mentions… | Start with |
+| --- | --- |
+| Bank feed, match, categorize, Plaid | [Bank rec](/troubleshooting/bank-reconciliation) |
+| Bill, supplier payment, W-9, positive pay | [AP](/troubleshooting/accounts-payable) |
+| Invoice, customer payment, dunning | [AR](/troubleshooting/accounts-receivable) |
+| Journal, period close, dimensions | [GL](/troubleshooting/general-ledger) |
+| Qty, bin, count, average cost | [Inventory](/troubleshooting/inventory) |
+| Shopify, Trackstar, EasyPost, sync | [Integrations](/troubleshooting/integrations) |
+
+## Definition of done
+
+- Root cause stated in plain language
+- Evidence links/query outputs attached (redacted)
+- Fix applied via product path **or** escalation filed
+- Customer told what changed and what to verify

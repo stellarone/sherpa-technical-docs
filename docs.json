@@ -1,37 +1,72 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Sherpa Support Docs",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0F766E",
+    "light": "#2DD4BF",
+    "dark": "#115E59"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "pages": [
       {
-        "group": "Getting Started",
+        "group": "Start here",
         "pages": [
           "index",
-          "quickstart"
+          "orientation/overview",
+          "orientation/terminology",
+          "orientation/systems-map"
+        ]
+      },
+      {
+        "group": "Support workflows",
+        "pages": [
+          "support/intake",
+          "support/safe-investigation",
+          "support/escalation"
+        ]
+      },
+      {
+        "group": "Troubleshooting",
+        "pages": [
+          "troubleshooting/overview",
+          "troubleshooting/bank-reconciliation",
+          "troubleshooting/accounts-payable",
+          "troubleshooting/accounts-receivable",
+          "troubleshooting/general-ledger",
+          "troubleshooting/inventory",
+          "troubleshooting/integrations"
+        ]
+      },
+      {
+        "group": "Data model",
+        "pages": [
+          "data-model/overview",
+          "data-model/transaction-traces",
+          "data-model/table-index",
+          "data-model/platform",
+          "data-model/ar",
+          "data-model/ap",
+          "data-model/gl",
+          "data-model/bank",
+          "data-model/inventory",
+          "data-model/orders-fulfillment",
+          "data-model/integrations",
+          "data-model/history",
+          "data-model/other"
+        ]
+      },
+      {
+        "group": "Integrations",
+        "pages": [
+          "integrations/overview",
+          "integrations/plaid",
+          "integrations/trackstar-shopify",
+          "integrations/easypost"
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -40,14 +75,13 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:support@mintlify.com"
+        "label": "Supabase",
+        "href": "https://supabase.com/dashboard/project/linqdstukqayvducxguc"
       }
     ],
     "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "type": "github",
+      "href": "https://github.com/stellarone/sherpa-technical-docs"
     }
   },
   "contextual": {
@@ -56,17 +90,12 @@
       "view",
       "chatgpt",
       "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
+      "cursor"
     ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/stellarone/sherpa-technical-docs"
     }
   }
 }

@@ -1,0 +1,573 @@
+---
+title: "Historical archive"
+description: "Reporting-only history twins for migrated or archived documents."
+---
+
+Reporting-only history twins for migrated or archived documents.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`hist_ap_bill_lines`](#hist-ap-bill-lines) | 19 | 3 |
+| [`hist_ap_bills`](#hist-ap-bills) | 21 | 2 |
+| [`hist_ar_invoice_lines`](#hist-ar-invoice-lines) | 19 | 3 |
+| [`hist_ar_invoices`](#hist-ar-invoices) | 23 | 2 |
+| [`hist_customers`](#hist-customers) | 12 | 3 |
+| [`hist_gl_accounts`](#hist-gl-accounts) | 14 | 3 |
+| [`hist_inventory_transactions`](#hist-inventory-transactions) | 19 | 2 |
+| [`hist_items`](#hist-items) | 15 | 3 |
+| [`hist_journal_entries`](#hist-journal-entries) | 14 | 2 |
+| [`hist_journal_entry_lines`](#hist-journal-entry-lines) | 17 | 3 |
+| [`hist_purchase_order_lines`](#hist-purchase-order-lines) | 18 | 3 |
+| [`hist_purchase_orders`](#hist-purchase-orders) | 19 | 2 |
+| [`hist_purchase_receipt_lines`](#hist-purchase-receipt-lines) | 17 | 3 |
+| [`hist_purchase_receipts`](#hist-purchase-receipts) | 17 | 2 |
+| [`hist_sales_order_lines`](#hist-sales-order-lines) | 17 | 3 |
+| [`hist_sales_orders`](#hist-sales-orders) | 21 | 2 |
+| [`hist_suppliers`](#hist-suppliers) | 12 | 3 |
+
+## `hist_ap_bill_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `hist_bill_id` | `uuid` | YES | — |
+| `legacy_bill_id` | `text` | NO | — |
+| `line_number` | `integer` | YES | — |
+| `description` | `text` | YES | — |
+| `quantity` | `numeric` | YES | — |
+| `unit_price` | `numeric` | YES | — |
+| `line_total` | `numeric` | YES | — |
+| `legacy_item_id` | `text` | YES | — |
+| `legacy_item_sku` | `text` | YES | — |
+| `legacy_item_name` | `text` | YES | — |
+| `legacy_account_id` | `text` | YES | — |
+| `legacy_account_code` | `text` | YES | — |
+| `legacy_account_name` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `hist_bill_id` | `hist_ap_bills.id` | `hist_ap_bill_lines_hist_bill_id_fkey` |
+| `import_job_id` | `import_jobs.id` | `hist_ap_bill_lines_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_ap_bill_lines_organization_id_fkey` |
+
+## `hist_ap_bills`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_bill_number` | `text` | YES | — |
+| `doc_type` | `text` | YES | — |
+| `status` | `text` | YES | — |
+| `terms` | `text` | YES | — |
+| `reference` | `text` | YES | — |
+| `memo` | `text` | YES | — |
+| `bill_date` | `date` | YES | — |
+| `due_date` | `date` | YES | — |
+| `pay_date` | `date` | YES | — |
+| `amount` | `numeric` | YES | — |
+| `legacy_supplier_id` | `text` | YES | — |
+| `legacy_supplier_number` | `text` | YES | — |
+| `legacy_supplier_name` | `text` | YES | — |
+| `amount_paid` | `numeric` | YES | — |
+| `archive_record_type` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_ap_bills_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_ap_bills_organization_id_fkey` |
+
+## `hist_ar_invoice_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `hist_invoice_id` | `uuid` | YES | — |
+| `legacy_invoice_id` | `text` | NO | — |
+| `line_number` | `integer` | YES | — |
+| `description` | `text` | YES | — |
+| `quantity` | `numeric` | YES | — |
+| `unit_price` | `numeric` | YES | — |
+| `line_total` | `numeric` | YES | — |
+| `legacy_item_id` | `text` | YES | — |
+| `legacy_item_sku` | `text` | YES | — |
+| `legacy_item_name` | `text` | YES | — |
+| `legacy_account_id` | `text` | YES | — |
+| `legacy_account_code` | `text` | YES | — |
+| `legacy_account_name` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `hist_invoice_id` | `hist_ar_invoices.id` | `hist_ar_invoice_lines_hist_invoice_id_fkey` |
+| `import_job_id` | `import_jobs.id` | `hist_ar_invoice_lines_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_ar_invoice_lines_organization_id_fkey` |
+
+## `hist_ar_invoices`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_invoice_number` | `text` | YES | — |
+| `doc_type` | `text` | YES | — |
+| `status` | `text` | YES | — |
+| `reference` | `text` | YES | — |
+| `memo` | `text` | YES | — |
+| `invoice_date` | `date` | YES | — |
+| `due_date` | `date` | YES | — |
+| `subtotal` | `numeric` | YES | — |
+| `tax_total` | `numeric` | YES | — |
+| `total` | `numeric` | YES | — |
+| `amount_paid` | `numeric` | YES | — |
+| `amount_credited` | `numeric` | YES | — |
+| `balance_due` | `numeric` | YES | — |
+| `legacy_customer_id` | `text` | YES | — |
+| `legacy_customer_number` | `text` | YES | — |
+| `legacy_customer_name` | `text` | YES | — |
+| `archive_record_type` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_ar_invoices_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_ar_invoices_organization_id_fkey` |
+
+## `hist_customers`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_customer_number` | `text` | YES | — |
+| `legacy_name` | `text` | YES | — |
+| `legacy_status` | `text` | YES | — |
+| `legacy_terms` | `text` | YES | — |
+| `legacy_payment_terms_days` | `integer` | YES | — |
+| `customer_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `customer_id` | `ar_customers.id` | `hist_customers_customer_id_fkey` |
+| `import_job_id` | `import_jobs.id` | `hist_customers_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_customers_organization_id_fkey` |
+
+## `hist_gl_accounts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_account_code` | `text` | YES | — |
+| `legacy_account_name` | `text` | YES | — |
+| `legacy_account_type` | `text` | YES | — |
+| `legacy_natural` | `text` | YES | — |
+| `legacy_cost_center` | `text` | YES | — |
+| `legacy_region` | `text` | YES | — |
+| `legacy_active` | `boolean` | YES | — |
+| `gl_account_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `gl_account_id` | `finance_chartofaccounts_accounts.id` | `hist_gl_accounts_gl_account_id_fkey` |
+| `import_job_id` | `import_jobs.id` | `hist_gl_accounts_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_gl_accounts_organization_id_fkey` |
+
+## `hist_inventory_transactions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `transaction_date` | `date` | YES | — |
+| `movement_type` | `text` | YES | — |
+| `quantity` | `numeric` | YES | — |
+| `unit_cost` | `numeric` | YES | — |
+| `reason` | `text` | YES | — |
+| `reference` | `text` | YES | — |
+| `legacy_source_type` | `text` | YES | — |
+| `legacy_source_id` | `text` | YES | — |
+| `legacy_item_id` | `text` | YES | — |
+| `legacy_item_sku` | `text` | YES | — |
+| `legacy_item_name` | `text` | YES | — |
+| `legacy_warehouse_id` | `text` | YES | — |
+| `legacy_warehouse_code` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_inventory_transactions_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_inventory_transactions_organization_id_fkey` |
+
+## `hist_items`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_sku` | `text` | YES | — |
+| `legacy_name` | `text` | YES | — |
+| `legacy_description` | `text` | YES | — |
+| `legacy_item_type` | `text` | YES | — |
+| `legacy_category_name` | `text` | YES | — |
+| `legacy_standard_cost` | `numeric` | YES | — |
+| `legacy_sales_price` | `numeric` | YES | — |
+| `legacy_active` | `boolean` | YES | — |
+| `item_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_items_import_job_id_fkey` |
+| `item_id` | `items.id` | `hist_items_item_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_items_organization_id_fkey` |
+
+## `hist_journal_entries`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_entry_code` | `text` | YES | — |
+| `status` | `text` | YES | — |
+| `reference` | `text` | YES | — |
+| `memo` | `text` | YES | — |
+| `entry_date` | `date` | YES | — |
+| `reversing` | `boolean` | YES | — |
+| `legacy_source_type` | `text` | YES | — |
+| `legacy_source_id` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_journal_entries_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_journal_entries_organization_id_fkey` |
+
+## `hist_journal_entry_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `hist_entry_id` | `uuid` | YES | — |
+| `legacy_entry_id` | `text` | NO | — |
+| `line_order` | `smallint` | YES | — |
+| `debit` | `numeric` | YES | — |
+| `credit` | `numeric` | YES | — |
+| `description` | `text` | YES | — |
+| `legacy_item_code` | `text` | YES | — |
+| `dimensions` | `jsonb` | NO | '{}'::jsonb |
+| `legacy_account_id` | `text` | YES | — |
+| `legacy_account_code` | `text` | YES | — |
+| `legacy_account_name` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `hist_entry_id` | `hist_journal_entries.id` | `hist_journal_entry_lines_hist_entry_id_fkey` |
+| `import_job_id` | `import_jobs.id` | `hist_journal_entry_lines_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_journal_entry_lines_organization_id_fkey` |
+
+## `hist_purchase_order_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `hist_po_id` | `uuid` | YES | — |
+| `legacy_po_id` | `text` | NO | — |
+| `line_number` | `integer` | YES | — |
+| `line_type` | `text` | YES | — |
+| `description` | `text` | YES | — |
+| `quantity` | `numeric` | YES | — |
+| `unit_cost` | `numeric` | YES | — |
+| `expected_date` | `date` | YES | — |
+| `qty_received` | `numeric` | YES | — |
+| `legacy_item_id` | `text` | YES | — |
+| `legacy_item_sku` | `text` | YES | — |
+| `legacy_item_name` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `hist_po_id` | `hist_purchase_orders.id` | `hist_purchase_order_lines_hist_po_id_fkey` |
+| `import_job_id` | `import_jobs.id` | `hist_purchase_order_lines_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_purchase_order_lines_organization_id_fkey` |
+
+## `hist_purchase_orders`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_po_number` | `text` | YES | — |
+| `status` | `text` | YES | — |
+| `terms` | `text` | YES | — |
+| `supplier_ref` | `text` | YES | — |
+| `notes` | `text` | YES | — |
+| `order_date` | `date` | YES | — |
+| `expected_date` | `date` | YES | — |
+| `legacy_supplier_id` | `text` | YES | — |
+| `legacy_supplier_number` | `text` | YES | — |
+| `legacy_supplier_name` | `text` | YES | — |
+| `legacy_warehouse_id` | `text` | YES | — |
+| `legacy_warehouse_code` | `text` | YES | — |
+| `archive_record_type` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_purchase_orders_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_purchase_orders_organization_id_fkey` |
+
+## `hist_purchase_receipt_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `hist_receipt_id` | `uuid` | YES | — |
+| `legacy_receipt_id` | `text` | NO | — |
+| `line_number` | `integer` | YES | — |
+| `line_type` | `text` | YES | — |
+| `description` | `text` | YES | — |
+| `qty_received` | `numeric` | YES | — |
+| `unit_cost` | `numeric` | YES | — |
+| `legacy_po_line_id` | `text` | YES | — |
+| `legacy_item_id` | `text` | YES | — |
+| `legacy_item_sku` | `text` | YES | — |
+| `legacy_item_name` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `hist_receipt_id` | `hist_purchase_receipts.id` | `hist_purchase_receipt_lines_hist_receipt_id_fkey` |
+| `import_job_id` | `import_jobs.id` | `hist_purchase_receipt_lines_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_purchase_receipt_lines_organization_id_fkey` |
+
+## `hist_purchase_receipts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_receipt_number` | `text` | YES | — |
+| `status` | `text` | YES | — |
+| `receipt_date` | `date` | YES | — |
+| `notes` | `text` | YES | — |
+| `legacy_po_id` | `text` | YES | — |
+| `legacy_po_number` | `text` | YES | — |
+| `legacy_supplier_id` | `text` | YES | — |
+| `legacy_supplier_number` | `text` | YES | — |
+| `legacy_supplier_name` | `text` | YES | — |
+| `legacy_warehouse_id` | `text` | YES | — |
+| `legacy_warehouse_code` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_purchase_receipts_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_purchase_receipts_organization_id_fkey` |
+
+## `hist_sales_order_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `hist_sales_order_id` | `uuid` | YES | — |
+| `legacy_sales_order_id` | `text` | NO | — |
+| `line_number` | `integer` | YES | — |
+| `description` | `text` | YES | — |
+| `qty_ordered` | `numeric` | YES | — |
+| `qty_fulfilled` | `numeric` | YES | — |
+| `unit_price` | `numeric` | YES | — |
+| `line_total` | `numeric` | YES | — |
+| `legacy_item_id` | `text` | YES | — |
+| `legacy_item_sku` | `text` | YES | — |
+| `legacy_item_name` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `hist_sales_order_id` | `hist_sales_orders.id` | `hist_sales_order_lines_hist_sales_order_id_fkey` |
+| `import_job_id` | `import_jobs.id` | `hist_sales_order_lines_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_sales_order_lines_organization_id_fkey` |
+
+## `hist_sales_orders`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_order_number` | `text` | YES | — |
+| `status` | `text` | YES | — |
+| `order_type` | `text` | YES | — |
+| `channel` | `text` | YES | — |
+| `currency` | `text` | YES | — |
+| `notes` | `text` | YES | — |
+| `order_date` | `date` | YES | — |
+| `subtotal` | `numeric` | YES | — |
+| `total` | `numeric` | YES | — |
+| `legacy_customer_id` | `text` | YES | — |
+| `legacy_customer_number` | `text` | YES | — |
+| `legacy_customer_name` | `text` | YES | — |
+| `legacy_warehouse_id` | `text` | YES | — |
+| `legacy_warehouse_code` | `text` | YES | — |
+| `archive_record_type` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_sales_orders_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_sales_orders_organization_id_fkey` |
+
+## `hist_suppliers`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `legacy_id` | `text` | NO | — |
+| `source_system` | `text` | YES | — |
+| `import_job_id` | `uuid` | YES | — |
+| `loaded_at` | `timestamptz` | NO | now() |
+| `legacy_supplier_number` | `text` | YES | — |
+| `legacy_name` | `text` | YES | — |
+| `legacy_status` | `text` | YES | — |
+| `legacy_terms` | `text` | YES | — |
+| `legacy_category` | `text` | YES | — |
+| `supplier_id` | `uuid` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `import_job_id` | `import_jobs.id` | `hist_suppliers_import_job_id_fkey` |
+| `organization_id` | `organizations.id` | `hist_suppliers_organization_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `hist_suppliers_supplier_id_fkey` |
+

@@ -1,0 +1,69 @@
+---
+title: "Trackstar and Shopify"
+description: "Cart ingest, channel mapping, and inventory sync via Trackstar."
+---
+
+## What it does
+
+Trackstar bridges commerce carts (notably Shopify) into Sherpa sales orders, channel settings, fulfillment handoff, and inventory availability sync.
+
+## Live objects
+
+| Table | Purpose |
+| --- | --- |
+| `data_connections` | Connection row (`integration_type` often `cart` or `wms`) |
+| `cart_integration_settings` | Org defaults (PK = `organization_id`) |
+| `cart_channel_maps` | Channel taxonomy mapping |
+| `cart_ingest_exceptions` | Failed inbound events with retry metadata |
+| `cart_integration_activity` | Operator-visible activity |
+| `commerce_channel_settings` | Channel configuration |
+| `trackstar_inventory_sync_outbox` | Outbound inventory updates |
+| `trackstar_initial_sync_watchdog` | Initial sync watchdog |
+| `trackstar_cart_reconciliation_cursors` | Reconciliation cursors |
+| `sales_orders` / `sales_order_lines` | Created commercial documents |
+| `fulfillment_trackstar_shipment_lines` | 3PL shipment line mirrors |
+
+## Healthy path
+
+1. `data_connections` becomes `connected` and sync readiness is marked.
+2. Inbound cart events map through `cart_channel_maps`.
+3. Sales order created (`origin` / `external_id` / `channel_order_number` populated).
+4. Checkout deposit / recognition RPCs post AR as designed for cart orders.
+5. Inventory changes enqueue on `trackstar_inventory_sync_outbox` and drain.
+
+## Exception triage
+
+Priority fields on `cart_ingest_exceptions`:
+
+- `stage`, `event_type`, `reason`
+- `external_order_id`, `map_type`, `source_key`, `dedupe_key`
+- `retry_count`, `next_retry_at`, `status`
+
+<Steps>
+  <Step title="Confirm connection health">
+    `data_connections.status` and `sync_status` for the org/provider.
+  </Step>
+  <Step title="Classify the stage">
+    Mapping vs item/SKU vs payment/recognition vs fulfillment.
+  </Step>
+  <Step title="Look for an existing sales order">
+    Match on `external_id` / `channel_order_number` before retrying ingest.
+  </Step>
+  <Step title="Fix master data, then retry once">
+    Create missing items/maps; resolve exception; verify no duplicate SO.
+  </Step>
+</Steps>
+
+## Common support asks
+
+| Ask | Where to look |
+| --- | --- |
+| Order missing in Sherpa | Open exceptions + webhook events + connection status |
+| Wrong customer group | `cart_integration_settings.default_customer_group_id` |
+| Inventory not updating on Shopify | Outbox rows + item SKU mapping |
+| Prepaid order not invoiced | Cart recognition RPCs + AR invoice `source` |
+
+## Safety
+
+- Treat `access_token_ref` as a pointer only.
+- Do not rewind reconciliation cursors without engineering.

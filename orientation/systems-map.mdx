@@ -1,0 +1,60 @@
+---
+title: "Systems map"
+description: "How Sherpa app, Supabase, Clerk, and third-party services connect."
+---
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+  User[Browser user] --> App[Sherpa app]
+  App --> Clerk[Clerk auth]
+  App --> SB[Supabase API]
+  SB --> PG[(Postgres + RLS)]
+  SB --> Vault[Vault secrets]
+  SB --> Fn[Edge functions]
+  Fn --> Plaid[Plaid]
+  Fn --> DS[DocuSign]
+  Fn --> EP[EasyPost]
+  App --> TS[Trackstar]
+  TS --> Shopify[Shopify]
+  PG --> Fn
+```
+
+## Supabase project
+
+| Field | Value |
+| --- | --- |
+| Name | `sherpa` |
+| Project id | `linqdstukqayvducxguc` |
+| Region | `us-east-2` |
+| Primary schema | `public` |
+
+## Edge function groups (support-relevant)
+
+| Group | Examples | Domain |
+| --- | --- | --- |
+| Plaid | `plaid-create-link-token`, `plaid-exchange-public-token`, `plaid-sync-transactions`, `plaid-webhook` | Bank |
+| Bank rec | `suggest-bank-matches`, `confirm-match`, `categorize-transaction`, `apply-payment`, `unreconcile-transaction` | Bank |
+| AR | `ar-dunning-run`, `ar-generate-pay-link`, `ar-public-pay`, `recurring-materialize-run` | AR |
+| Compliance | `docusign-send-w9`, `docusign-connect-webhook`, `positive-pay-issue` | AP |
+| Identity probe | `clerk-echo` | Platform |
+
+## Secret handling
+
+| Kind | Storage | Support rule |
+| --- | --- | --- |
+| Plaid access tokens | `plaid_item_secrets` / vault | Never select into tickets |
+| Trackstar API keys | Vault via data connection refs | Use `get_trackstar_api_key` only in approved tooling |
+| EasyPost account keys | Org vault secret id on `organizations` | Diagnose via status fields, not key values |
+| Data connection tokens | `data_connections.access_token_ref` | Reference the ref id only |
+
+## Source repo
+
+Application and function source: [stellarone/sherpa-e9c75a24](https://github.com/stellarone/sherpa-e9c75a24).
+
+When UI behavior and DB state disagree, prefer:
+
+1. Live DB row + status
+2. Edge function logs for the org/time window
+3. App code paths in the source repo

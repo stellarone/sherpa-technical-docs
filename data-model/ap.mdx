@@ -1,0 +1,894 @@
+---
+title: "Accounts payable"
+description: "Suppliers, POs, receipts, bills, payments, positive pay, and 1099."
+---
+
+Suppliers, POs, receipts, bills, payments, positive pay, and 1099.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`ap_adjustment_applications`](#ap-adjustment-applications) | 12 | 3 |
+| [`ap_bill_applications`](#ap-bill-applications) | 7 | 3 |
+| [`ap_bill_po_lines`](#ap-bill-po-lines) | 7 | 3 |
+| [`ap_bill_po_only_lines`](#ap-bill-po-only-lines) | 7 | 3 |
+| [`ap_bills`](#ap-bills) | 43 | 6 |
+| [`ap_bills_lines`](#ap-bills-lines) | 17 | 5 |
+| [`ap_credit_applications`](#ap-credit-applications) | 7 | 3 |
+| [`ap_debit_applications`](#ap-debit-applications) | 7 | 3 |
+| [`ap_payment_applications`](#ap-payment-applications) | 7 | 3 |
+| [`ap_payments`](#ap-payments) | 16 | 3 |
+| [`ap_purchase_order_lines`](#ap-purchase-order-lines) | 19 | 5 |
+| [`ap_purchase_order_lines_with_receiving`](#ap-purchase-order-lines-with-receiving) | 20 | 0 |
+| [`ap_purchase_orders`](#ap-purchase-orders) | 28 | 6 |
+| [`ap_receipt_lines`](#ap-receipt-lines) | 18 | 5 |
+| [`ap_receipts`](#ap-receipts) | 14 | 4 |
+| [`ap_supplier_addresses`](#ap-supplier-addresses) | 22 | 5 |
+| [`ap_supplier_groups`](#ap-supplier-groups) | 17 | 7 |
+| [`ap_supplier_tax_profiles`](#ap-supplier-tax-profiles) | 20 | 2 |
+| [`ap_suppliers`](#ap-suppliers) | 29 | 8 |
+| [`ap_w9_envelopes`](#ap-w9-envelopes) | 9 | 2 |
+| [`irs_1099_box_overrides`](#irs-1099-box-overrides) | 6 | 1 |
+| [`irs_1099_boxes`](#irs-1099-boxes) | 5 | 0 |
+| [`irs_1099_thresholds`](#irs-1099-thresholds) | 4 | 0 |
+| [`positive_pay_exception_decision_history`](#positive-pay-exception-decision-history) | 7 | 2 |
+| [`positive_pay_exceptions`](#positive-pay-exceptions) | 17 | 4 |
+| [`positive_pay_formats`](#positive-pay-formats) | 20 | 2 |
+| [`positive_pay_import_batches`](#positive-pay-import-batches) | 8 | 3 |
+| [`positive_pay_issue_batches`](#positive-pay-issue-batches) | 11 | 3 |
+| [`supplier_actions`](#supplier-actions) | 13 | 1 |
+
+## `ap_adjustment_applications`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `source_bill_id` | `uuid` | NO | — |
+| `target_bill_id` | `uuid` | NO | — |
+| `source_document_type` | `text` | NO | — |
+| `target_document_type` | `text` | NO | — |
+| `amount_applied` | `numeric` | NO | — |
+| `status` | `text` | NO | 'draft'::text |
+| `posted_at` | `timestamptz` | YES | — |
+| `reversed_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `ap_adjustment_applications_organization_id_fkey` |
+| `source_bill_id` | `ap_bills.id` | `ap_adjustment_applications_source_bill_id_fkey` |
+| `target_bill_id` | `ap_bills.id` | `ap_adjustment_applications_target_bill_id_fkey` |
+
+## `ap_bill_applications`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `source_bill_id` | `uuid` | NO | — |
+| `target_bill_id` | `uuid` | NO | — |
+| `amount_applied` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `ap_bill_applications_organization_id_fkey` |
+| `source_bill_id` | `ap_bills.id` | `ap_bill_applications_source_bill_id_fkey` |
+| `target_bill_id` | `ap_bills.id` | `ap_bill_applications_target_bill_id_fkey` |
+
+## `ap_bill_po_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `bill_line_id` | `uuid` | NO | — |
+| `receipt_line_id` | `uuid` | NO | — |
+| `qty_billed` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bill_line_id` | `ap_bills_lines.id` | `ap_bill_po_lines_bill_line_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_bill_po_lines_organization_id_fkey` |
+| `receipt_line_id` | `ap_receipt_lines.id` | `ap_bill_po_lines_receipt_line_id_fkey` |
+
+## `ap_bill_po_only_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `bill_line_id` | `uuid` | NO | — |
+| `po_line_id` | `uuid` | NO | — |
+| `quantity` | `numeric` | NO | — |
+| `amount` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bill_line_id` | `ap_bills_lines.id` | `ap_bill_po_only_lines_bill_line_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_bill_po_only_lines_organization_id_fkey` |
+| `po_line_id` | `ap_purchase_order_lines.id` | `ap_bill_po_only_lines_po_line_id_fkey` |
+
+## `ap_bills`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `doc_type` | `text` | NO | 'bill'::text |
+| `bill_number` | `text` | NO | — |
+| `supplier_id` | `uuid` | YES | — |
+| `supplier_name` | `text` | NO | ''::text |
+| `amount` | `numeric` | NO | 0 |
+| `bill_date` | `date` | NO | CURRENT_DATE |
+| `due_date` | `date` | YES | — |
+| `pay_date` | `date` | YES | — |
+| `terms` | `text` | NO | 'Net 30'::text |
+| `payment_method` | `text` | NO | 'ACH'::text |
+| `status` | `text` | NO | 'review'::text |
+| `adjustment_type` | `text` | YES | — |
+| `adjustment_direction` | `text` | YES | — |
+| `reference` | `text` | NO | ''::text |
+| `reason` | `text` | NO | ''::text |
+| `memo` | `text` | NO | ''::text |
+| `source` | `text` | NO | 'manual'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `journal_entry_code` | `text` | YES | — |
+| `defer_annual_amount` | `boolean` | NO | false |
+| `deferral_schedule_id` | `uuid` | YES | — |
+| `confidence_tier` | `text` | YES | — |
+| `review_reasons` | `_text[]` | NO | '{}'::text[] |
+| `suggested_gl` | `text` | YES | — |
+| `document_url` | `text` | YES | — |
+| `field_mappings` | `jsonb` | NO | '[]'::jsonb |
+| `supplier_guess` | `jsonb` | NO | '{}'::jsonb |
+| `reversal_journal_entry_code` | `text` | YES | — |
+| `cash_discount_date` | `date` | YES | — |
+| `terms_code_id` | `uuid` | YES | — |
+| `terms_net_days` | `integer` | YES | — |
+| `cash_discount_percent` | `numeric` | NO | 0 |
+| `original_bill_id` | `uuid` | YES | — |
+| `offset_account_id` | `uuid` | YES | — |
+| `auto_apply_to_documents` | `boolean` | NO | false |
+| `origin` | `text` | NO | 'operational'::text |
+| `import_job_id` | `uuid` | YES | — |
+| `external_id` | `text` | YES | — |
+| `history_twin_eligible` | `boolean` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `deferral_schedule_id` | `finance_deferral_schedules.id` | `ap_bills_deferral_schedule_id_fkey` |
+| `offset_account_id` | `finance_chartofaccounts_accounts.id` | `ap_bills_offset_account_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_bills_new_organization_id_fkey` |
+| `original_bill_id` | `ap_bills.id` | `ap_bills_original_bill_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `ap_bills_supplier_id_fkey` |
+| `terms_code_id` | `finance_termscodes.id` | `ap_bills_terms_code_id_fkey` |
+
+## `ap_bills_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `bill_id` | `uuid` | NO | — |
+| `line_number` | `integer` | NO | — |
+| `description` | `text` | NO | ''::text |
+| `quantity` | `numeric` | NO | 1 |
+| `unit_price` | `numeric` | NO | 0 |
+| `expense_account_id` | `uuid` | YES | — |
+| `line_total` | `numeric` | NO | 0 |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `item_id` | `uuid` | YES | — |
+| `uom_id` | `uuid` | YES | — |
+| `qty_entered` | `numeric` | YES | — |
+| `uom_conversion_to_base` | `numeric` | YES | — |
+| `segment_values` | `jsonb` | NO | '{}'::jsonb |
+| `dimensions` | `jsonb` | NO | '{}'::jsonb |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bill_id` | `ap_bills.id` | `ap_bills_lines_bill_id_fkey` |
+| `expense_account_id` | `finance_chartofaccounts_accounts.id` | `ap_bills_lines_expense_account_id_fkey` |
+| `item_id` | `items.id` | `ap_bills_lines_item_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_bills_lines_organization_id_fkey` |
+| `uom_id` | `units_of_measure.id` | `ap_bills_lines_uom_id_fkey` |
+
+## `ap_credit_applications`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `credit_memo_id` | `uuid` | NO | — |
+| `bill_id` | `uuid` | NO | — |
+| `amount_applied` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bill_id` | `ap_bills.id` | `ap_credit_applications_bill_id_fkey` |
+| `credit_memo_id` | `ap_bills.id` | `ap_credit_applications_credit_memo_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_credit_applications_organization_id_fkey` |
+
+## `ap_debit_applications`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `debit_memo_id` | `uuid` | NO | — |
+| `credit_memo_id` | `uuid` | NO | — |
+| `amount_applied` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `credit_memo_id` | `ap_bills.id` | `ap_debit_applications_credit_memo_id_fkey` |
+| `debit_memo_id` | `ap_bills.id` | `ap_debit_applications_debit_memo_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_debit_applications_organization_id_fkey` |
+
+## `ap_payment_applications`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `payment_id` | `uuid` | NO | — |
+| `bill_id` | `uuid` | NO | — |
+| `amount_applied` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bill_id` | `ap_bills.id` | `ap_payment_applications_bill_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_payment_applications_organization_id_fkey` |
+| `payment_id` | `ap_payments.id` | `ap_payment_applications_payment_id_fkey` |
+
+## `ap_payments`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `supplier_id` | `uuid` | NO | — |
+| `amount` | `numeric` | NO | — |
+| `payment_date` | `date` | NO | CURRENT_DATE |
+| `method` | `text` | NO | — |
+| `provider` | `text` | NO | 'manual'::text |
+| `provider_reference` | `text` | NO | ''::text |
+| `status` | `text` | NO | 'succeeded'::text |
+| `journal_entry_code` | `text` | YES | — |
+| `reversal_journal_entry_code` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `payment_number` | `text` | NO | — |
+| `cash_account_id` | `uuid` | YES | — |
+| `doc_type` | `text` | NO | 'payment'::text |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `cash_account_id` | `finance_chartofaccounts_accounts.id` | `ap_payments_cash_account_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_payments_organization_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `ap_payments_supplier_id_fkey` |
+
+## `ap_purchase_order_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `po_order_id` | `uuid` | NO | — |
+| `line_number` | `integer` | NO | — |
+| `line_type` | `text` | NO | 'stock'::text |
+| `item_id` | `uuid` | YES | — |
+| `description` | `text` | NO | ''::text |
+| `quantity` | `numeric` | NO | 1 |
+| `unit_cost` | `numeric` | NO | 0 |
+| `expected_date` | `date` | YES | — |
+| `is_received` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `uom_id` | `uuid` | YES | — |
+| `qty_entered` | `numeric` | YES | — |
+| `uom_conversion_to_base` | `numeric` | YES | — |
+| `sales_order_line_id` | `uuid` | YES | — |
+| `segment_values` | `jsonb` | NO | '{}'::jsonb |
+| `dimensions` | `jsonb` | NO | '{}'::jsonb |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `item_id` | `items.id` | `ap_purchase_order_lines_item_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_purchase_order_lines_organization_id_fkey` |
+| `po_order_id` | `ap_purchase_orders.id` | `ap_purchase_order_lines_po_order_id_fkey` |
+| `sales_order_line_id` | `sales_order_lines.id` | `ap_purchase_order_lines_sales_order_line_id_fkey` |
+| `uom_id` | `units_of_measure.id` | `ap_purchase_order_lines_uom_id_fkey` |
+
+## `ap_purchase_order_lines_with_receiving`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | YES | — |
+| `organization_id` | `uuid` | YES | — |
+| `po_order_id` | `uuid` | YES | — |
+| `line_number` | `integer` | YES | — |
+| `line_type` | `text` | YES | — |
+| `item_id` | `uuid` | YES | — |
+| `description` | `text` | YES | — |
+| `quantity` | `numeric` | YES | — |
+| `unit_cost` | `numeric` | YES | — |
+| `uom_id` | `uuid` | YES | — |
+| `qty_entered` | `numeric` | YES | — |
+| `uom_conversion_to_base` | `numeric` | YES | — |
+| `segment_values` | `jsonb` | YES | — |
+| `dimensions` | `jsonb` | YES | — |
+| `expected_date` | `date` | YES | — |
+| `is_received` | `boolean` | YES | — |
+| `created_at` | `timestamptz` | YES | — |
+| `updated_at` | `timestamptz` | YES | — |
+| `qty_received` | `numeric` | YES | — |
+| `qty_billed` | `numeric` | YES | — |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `ap_purchase_orders`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `po_number` | `text` | NO | ''::text |
+| `supplier_id` | `uuid` | NO | — |
+| `status` | `text` | NO | 'draft'::text |
+| `order_date` | `date` | NO | CURRENT_DATE |
+| `expected_date` | `date` | YES | — |
+| `ship_to_warehouse_id` | `uuid` | YES | — |
+| `terms` | `text` | NO | ''::text |
+| `supplier_ref` | `text` | NO | ''::text |
+| `notes` | `text` | YES | — |
+| `approved_by` | `uuid` | YES | — |
+| `approved_at` | `timestamptz` | YES | — |
+| `created_by` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `origin` | `text` | NO | 'operational'::text |
+| `import_job_id` | `uuid` | YES | — |
+| `external_id` | `text` | YES | — |
+| `sales_order_id` | `uuid` | YES | — |
+| `procurement_mode` | `text` | YES | — |
+| `ship_to_customer_address_id` | `uuid` | YES | — |
+| `ship_to_supplier_address_id` | `uuid` | YES | — |
+| `quoted_freight_amount` | `numeric` | YES | — |
+| `quoted_duty_amount` | `numeric` | YES | — |
+| `quoted_handling_amount` | `numeric` | YES | — |
+| `quoted_insurance_amount` | `numeric` | YES | — |
+| `quoted_other_amount` | `numeric` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `ap_purchase_orders_organization_id_fkey` |
+| `sales_order_id` | `sales_orders.id` | `ap_purchase_orders_sales_order_id_fkey` |
+| `ship_to_customer_address_id` | `ar_customer_addresses.id` | `ap_purchase_orders_ship_to_customer_address_id_fkey` |
+| `ship_to_supplier_address_id` | `ap_supplier_addresses.id` | `ap_purchase_orders_ship_to_supplier_address_id_fkey` |
+| `ship_to_warehouse_id` | `warehouses.id` | `ap_purchase_orders_ship_to_warehouse_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `ap_purchase_orders_supplier_id_fkey` |
+
+## `ap_receipt_lines`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `receipt_id` | `uuid` | NO | — |
+| `line_number` | `integer` | NO | — |
+| `po_line_id` | `uuid` | NO | — |
+| `item_id` | `uuid` | YES | — |
+| `line_type` | `text` | NO | 'stock'::text |
+| `description` | `text` | NO | ''::text |
+| `qty_received` | `numeric` | NO | 0 |
+| `unit_cost` | `numeric` | NO | 0 |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `bin_allocations` | `jsonb` | NO | '[]'::jsonb |
+| `uom_id` | `uuid` | YES | — |
+| `qty_entered` | `numeric` | YES | — |
+| `uom_conversion_to_base` | `numeric` | YES | — |
+| `segment_values` | `jsonb` | NO | '{}'::jsonb |
+| `dimensions` | `jsonb` | NO | '{}'::jsonb |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `item_id` | `items.id` | `ap_receipt_lines_item_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_receipt_lines_organization_id_fkey` |
+| `po_line_id` | `ap_purchase_order_lines.id` | `ap_receipt_lines_po_line_id_fkey` |
+| `receipt_id` | `ap_receipts.id` | `ap_receipt_lines_receipt_id_fkey` |
+| `uom_id` | `units_of_measure.id` | `ap_receipt_lines_uom_id_fkey` |
+
+## `ap_receipts`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `receipt_number` | `text` | NO | ''::text |
+| `po_order_id` | `uuid` | YES | — |
+| `supplier_id` | `uuid` | NO | — |
+| `status` | `text` | NO | 'draft'::text |
+| `receipt_date` | `date` | NO | CURRENT_DATE |
+| `warehouse_id` | `uuid` | YES | — |
+| `journal_entry_code` | `text` | YES | — |
+| `notes` | `text` | YES | — |
+| `created_by` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `reversal_journal_entry_code` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `ap_receipts_organization_id_fkey` |
+| `po_order_id` | `ap_purchase_orders.id` | `ap_receipts_po_order_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `ap_receipts_supplier_id_fkey` |
+| `warehouse_id` | `warehouses.id` | `ap_receipts_warehouse_id_fkey` |
+
+## `ap_supplier_addresses`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `supplier_number` | `text` | NO | — |
+| `address_type` | `text` | NO | — |
+| `label` | `text` | YES | — |
+| `line1` | `text` | YES | — |
+| `line2` | `text` | YES | — |
+| `city` | `text` | YES | — |
+| `state` | `text` | YES | — |
+| `postal_code` | `text` | YES | — |
+| `country` | `text` | NO | 'US'::text |
+| `contact_name` | `text` | YES | — |
+| `email` | `text` | YES | — |
+| `phone` | `text` | YES | — |
+| `is_default` | `boolean` | NO | false |
+| `sort_order` | `integer` | NO | 0 |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `is_bill_to` | `boolean` | NO | true |
+| `is_ship_to` | `boolean` | NO | false |
+| `is_default_billing` | `boolean` | NO | false |
+| `is_default_shipping` | `boolean` | NO | false |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `ap_suppliers.organization_id` | `ap_supplier_addresses_org_supplier_number_fkey` |
+| `organization_id` | `ap_suppliers.supplier_number` | `ap_supplier_addresses_org_supplier_number_fkey` |
+| `organization_id` | `organizations.id` | `ap_supplier_addresses_organization_id_fkey` |
+| `supplier_number` | `ap_suppliers.organization_id` | `ap_supplier_addresses_org_supplier_number_fkey` |
+| `supplier_number` | `ap_suppliers.supplier_number` | `ap_supplier_addresses_org_supplier_number_fkey` |
+
+## `ap_supplier_groups`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `code` | `text` | NO | — |
+| `name` | `text` | NO | — |
+| `active` | `boolean` | NO | true |
+| `payment_terms_code` | `text` | YES | — |
+| `payment_method_code` | `text` | YES | — |
+| `shipping_terms` | `text` | NO | ''::text |
+| `shipping_rules` | `text` | NO | ''::text |
+| `ap_account_id` | `uuid` | YES | — |
+| `expense_account_id` | `uuid` | YES | — |
+| `discount_account_id` | `uuid` | YES | — |
+| `cash_account_id` | `uuid` | YES | — |
+| `cash_discount_account_id` | `uuid` | YES | — |
+| `prepayment_account_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `ap_account_id` | `finance_chartofaccounts_accounts.id` | `ap_supplier_groups_ap_account_id_fkey` |
+| `cash_account_id` | `finance_chartofaccounts_accounts.id` | `ap_supplier_groups_cash_account_id_fkey` |
+| `cash_discount_account_id` | `finance_chartofaccounts_accounts.id` | `ap_supplier_groups_cash_discount_account_id_fkey` |
+| `discount_account_id` | `finance_chartofaccounts_accounts.id` | `ap_supplier_groups_discount_account_id_fkey` |
+| `expense_account_id` | `finance_chartofaccounts_accounts.id` | `ap_supplier_groups_expense_account_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_supplier_groups_organization_id_fkey` |
+| `prepayment_account_id` | `finance_chartofaccounts_accounts.id` | `ap_supplier_groups_prepayment_account_id_fkey` |
+
+## `ap_supplier_tax_profiles`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `supplier_id` | `uuid` | NO | — |
+| `legal_name` | `text` | YES | — |
+| `business_name` | `text` | YES | — |
+| `tax_classification` | `text` | YES | — |
+| `tin` | `bytea` | YES | — |
+| `tin_type` | `text` | YES | — |
+| `tin_last4` | `text` | YES | — |
+| `w9_status` | `text` | NO | 'none'::text |
+| `w9_signed_date` | `date` | YES | — |
+| `w9_expires_date` | `date` | YES | — |
+| `w9_document_url` | `text` | YES | — |
+| `is_1099_eligible` | `boolean` | YES | — |
+| `eligibility_reason` | `text` | YES | — |
+| `eligibility_override` | `boolean` | NO | false |
+| `override_note` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `form_1099_box` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `ap_supplier_tax_profiles_organization_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `ap_supplier_tax_profiles_supplier_id_fkey` |
+
+## `ap_suppliers`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `user_id` | `uuid` | YES | — |
+| `supplier_number` | `text` | NO | — |
+| `name` | `text` | NO | ''::text |
+| `category` | `text` | NO | 'Goods'::text |
+| `terms` | `text` | NO | 'Net 30'::text |
+| `ytd` | `numeric` | NO | 0 |
+| `open_balance` | `numeric` | NO | 0 |
+| `w9` | `boolean` | NO | false |
+| `is_1099` | `boolean` | NO | false |
+| `status` | `text` | NO | 'active'::text |
+| `source` | `text` | NO | 'manually'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `w9_received_date` | `date` | YES | — |
+| `w9_requested_at` | `timestamptz` | YES | — |
+| `supplier_group_id` | `uuid` | YES | — |
+| `payment_method_code` | `text` | YES | — |
+| `shipping_terms` | `text` | YES | — |
+| `shipping_rules` | `text` | YES | — |
+| `ap_account_id` | `uuid` | YES | — |
+| `expense_account_id` | `uuid` | YES | — |
+| `discount_account_id` | `uuid` | YES | — |
+| `cash_account_id` | `uuid` | YES | — |
+| `cash_discount_account_id` | `uuid` | YES | — |
+| `prepayment_account_id` | `uuid` | YES | — |
+| `email` | `text` | YES | — |
+| `phone` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `ap_account_id` | `finance_chartofaccounts_accounts.id` | `ap_suppliers_ap_account_id_fkey` |
+| `cash_account_id` | `finance_chartofaccounts_accounts.id` | `ap_suppliers_cash_account_id_fkey` |
+| `cash_discount_account_id` | `finance_chartofaccounts_accounts.id` | `ap_suppliers_cash_discount_account_id_fkey` |
+| `discount_account_id` | `finance_chartofaccounts_accounts.id` | `ap_suppliers_discount_account_id_fkey` |
+| `expense_account_id` | `finance_chartofaccounts_accounts.id` | `ap_suppliers_expense_account_id_fkey` |
+| `organization_id` | `organizations.id` | `ap_suppliers_organization_id_fkey` |
+| `prepayment_account_id` | `finance_chartofaccounts_accounts.id` | `ap_suppliers_prepayment_account_id_fkey` |
+| `supplier_group_id` | `ap_supplier_groups.id` | `ap_suppliers_supplier_group_id_fkey` |
+
+## `ap_w9_envelopes`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `supplier_id` | `uuid` | NO | — |
+| `envelope_id` | `text` | NO | — |
+| `recipient_email` | `text` | NO | — |
+| `recipient_name` | `text` | YES | — |
+| `status` | `text` | NO | 'sent'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `ap_w9_envelopes_organization_id_fkey` |
+| `supplier_id` | `ap_suppliers.id` | `ap_w9_envelopes_supplier_id_fkey` |
+
+## `irs_1099_box_overrides`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `code` | `text` | NO | — |
+| `description` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `irs_1099_box_overrides_organization_id_fkey` |
+
+## `irs_1099_boxes`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `code` | `text` | NO | — |
+| `description` | `text` | NO | — |
+| `sort_order` | `integer` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `irs_1099_thresholds`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `tax_year` | `integer` | NO | — |
+| `nec_threshold` | `numeric` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+<Note>No outbound foreign keys on this table.</Note>
+
+## `positive_pay_exception_decision_history`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `exception_id` | `uuid` | NO | — |
+| `old_decision` | `text` | YES | — |
+| `new_decision` | `text` | NO | — |
+| `changed_by` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `exception_id` | `positive_pay_exceptions.id` | `positive_pay_exception_decision_history_exception_id_fkey` |
+| `organization_id` | `organizations.id` | `positive_pay_exception_decision_history_organization_id_fkey` |
+
+## `positive_pay_exceptions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `bank_account_id` | `uuid` | NO | — |
+| `import_batch_id` | `uuid` | NO | — |
+| `check_number` | `text` | NO | — |
+| `amount` | `numeric` | NO | — |
+| `payee_name` | `text` | NO | ''::text |
+| `presented_date` | `date` | YES | — |
+| `exception_reason` | `text` | NO | — |
+| `matched_check_id` | `uuid` | YES | — |
+| `decision` | `text` | NO | 'pending'::text |
+| `decision_by` | `text` | YES | — |
+| `decision_at` | `timestamptz` | YES | — |
+| `decision_deadline` | `timestamptz` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `decisions_exported_at` | `timestamptz` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_account_id` | `finance_bank_accounts.id` | `positive_pay_exceptions_bank_account_id_fkey` |
+| `import_batch_id` | `positive_pay_import_batches.id` | `positive_pay_exceptions_import_batch_id_fkey` |
+| `matched_check_id` | `finance_checks.id` | `positive_pay_exceptions_matched_check_id_fkey` |
+| `organization_id` | `organizations.id` | `positive_pay_exceptions_organization_id_fkey` |
+
+## `positive_pay_formats`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `bank_account_id` | `uuid` | YES | — |
+| `name` | `text` | NO | — |
+| `direction` | `text` | NO | — |
+| `file_type` | `text` | NO | — |
+| `delimiter` | `text` | YES | — |
+| `date_format` | `text` | NO | 'MMDDYYYY'::text |
+| `amount_format` | `text` | NO | 'decimal'::text |
+| `include_payee` | `boolean` | NO | false |
+| `has_header` | `boolean` | NO | false |
+| `has_trailer` | `boolean` | NO | false |
+| `header_template` | `text` | YES | — |
+| `trailer_template` | `text` | YES | — |
+| `field_layout` | `jsonb` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `decision_cutoff_time` | `time without time zone` | NO | '17:00:00'::time without time zone |
+| `decision_cutoff_days` | `integer` | NO | 1 |
+| `decision_format` | `jsonb` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_account_id` | `finance_bank_accounts.id` | `positive_pay_formats_bank_account_id_fkey` |
+| `organization_id` | `organizations.id` | `positive_pay_formats_organization_id_fkey` |
+
+## `positive_pay_import_batches`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `bank_account_id` | `uuid` | NO | — |
+| `format_id` | `uuid` | NO | — |
+| `file_name` | `text` | NO | — |
+| `row_count` | `integer` | NO | — |
+| `imported_by` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_account_id` | `finance_bank_accounts.id` | `positive_pay_import_batches_bank_account_id_fkey` |
+| `format_id` | `positive_pay_formats.id` | `positive_pay_import_batches_format_id_fkey` |
+| `organization_id` | `organizations.id` | `positive_pay_import_batches_organization_id_fkey` |
+
+## `positive_pay_issue_batches`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `bank_account_id` | `uuid` | NO | — |
+| `format_id` | `uuid` | NO | — |
+| `from_date` | `date` | NO | — |
+| `to_date` | `date` | NO | — |
+| `record_count` | `integer` | NO | — |
+| `total_amount` | `numeric` | NO | — |
+| `generated_by` | `text` | NO | — |
+| `file_name` | `text` | NO | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `bank_account_id` | `finance_bank_accounts.id` | `positive_pay_issue_batches_bank_account_id_fkey` |
+| `format_id` | `positive_pay_formats.id` | `positive_pay_issue_batches_format_id_fkey` |
+| `organization_id` | `organizations.id` | `positive_pay_issue_batches_organization_id_fkey` |
+
+## `supplier_actions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `supplier_id` | `uuid` | NO | — |
+| `action_type` | `text` | NO | — |
+| `reason` | `text` | NO | — |
+| `before_snapshot` | `jsonb` | NO | — |
+| `after_snapshot` | `jsonb` | NO | — |
+| `actor_id` | `text` | YES | — |
+| `actor_name` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `source` | `text` | NO | 'ui'::text |
+| `source_reference` | `text` | YES | — |
+| `batch_id` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `supplier_actions_organization_id_fkey` |
+

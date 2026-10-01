@@ -1,0 +1,62 @@
+---
+title: "Troubleshooting overview"
+description: "How to pick a runbook and gather evidence before changing data."
+---
+
+Each runbook follows the same pattern: symptoms → evidence queries → common causes → remediation → escalate when.
+
+## Runbook index
+
+<Columns cols={2}>
+  <Card title="Bank reconciliation" href="/troubleshooting/bank-reconciliation" icon="building-columns">
+    Unmatched Plaid txns, stuck statuses, mis-links.
+  </Card>
+  <Card title="Accounts payable" href="/troubleshooting/accounts-payable" icon="file-invoice-dollar">
+    Bills, payments, applications, W-9, positive pay.
+  </Card>
+  <Card title="Accounts receivable" href="/troubleshooting/accounts-receivable" icon="receipt">
+    Invoices, credits, payments, dunning, order-sourced AR.
+  </Card>
+  <Card title="General ledger" href="/troubleshooting/general-ledger" icon="book">
+    JE post/void, period close, dimension/account resolve.
+  </Card>
+  <Card title="Inventory" href="/troubleshooting/inventory" icon="boxes-stacked">
+    Qty mismatches, bins, counts, average cost.
+  </Card>
+  <Card title="Integrations" href="/troubleshooting/integrations" icon="diagram-project">
+    Trackstar/Shopify cart exceptions, EasyPost, sync readiness.
+  </Card>
+</Columns>
+
+## Evidence pack (always collect)
+
+1. `organization_id` (and slug if known)
+2. Document numbers / UUIDs
+3. Timestamp of failure (user local + UTC)
+4. Exact UI error string
+5. Fiscal period status for the document date
+6. Related `journal_entry_code` if posting-related
+
+## Safe investigation order
+
+<Steps>
+  <Step title="Read statuses">
+    Document `status`, integration `status`/`sync_status`, Plaid item status.
+  </Step>
+  <Step title="Follow FKs">
+    Use [transaction traces](/data-model/transaction-traces).
+  </Step>
+  <Step title="Check soft links">
+    `journal_entry_code`, `source_type`/`source_id`, `external_id`.
+  </Step>
+  <Step title="Inspect exceptions / logs">
+    `cart_ingest_exceptions`, `plaid_sync_log`, `data_audit_events`, edge function logs.
+  </Step>
+  <Step title="Propose fix">
+    Prefer in-app actions and RPCs over direct SQL updates.
+  </Step>
+</Steps>
+
+<Danger>
+Direct SQL updates to balances, applications, or posted journals can corrupt ledgers. Escalate to engineering with a written plan before mutating posted financials.
+</Danger>

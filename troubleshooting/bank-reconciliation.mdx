@@ -1,0 +1,100 @@
+---
+title: "Bank reconciliation"
+description: "Runbook for Plaid sync and bank transaction matching issues."
+---
+
+## Symptoms
+
+- Bank feed missing recent transactions
+- Transaction stuck in `needs_review` or `unreconciled`
+- Match confirms but GL balance looks wrong
+- Plaid connection shows `login_required` or `error`
+- Duplicate bank transactions after resync
+
+## Key tables
+
+| Table | Role |
+| --- | --- |
+| `plaid_items` | Institution connection status |
+| `plaid_accounts` | Accounts under an item |
+| `plaid_transactions` | Raw Plaid txn payload mirror |
+| `finance_bank_accounts` | Sherpa bank account ↔ GL cash account |
+| `finance_bank_transactions` | Working set for reconciliation |
+| `finance_bank_transaction_links` | Link to journal entries |
+| `finance_bank_memorized_coding_rules` | Auto-categorization rules |
+| `plaid_sync_log` | Sync attempt history |
+
+Statuses on `finance_bank_transactions.reconciliation_status`:
+
+`unreconciled` · `needs_review` · `matched` · `categorized` · `payment_applied` · `excluded`
+
+## Evidence queries
+
+```sql
+-- Plaid item health for an org
+SELECT id, institution_name, status, error_code, error_message, last_sync_at, updated_at
+FROM plaid_items
+WHERE organization_id = :org_id
+ORDER BY updated_at DESC;
+```
+
+```sql
+-- Stuck bank transactions
+SELECT id, bank_account_id, posted_date, amount, description, merchant_name,
+       reconciliation_status, source, source_transaction_id, pending
+FROM finance_bank_transactions
+WHERE organization_id = :org_id
+  AND reconciliation_status IN ('unreconciled', 'needs_review')
+  AND posted_date >= :start_date
+ORDER BY posted_date DESC
+LIMIT 100;
+```
+
+```sql
+-- Links for a bank transaction
+SELECT l.*, e.entry_code, e.status AS je_status, e.date AS je_date
+FROM finance_bank_transaction_links l
+JOIN finance_journalentries_entries e ON e.id = l.journal_entry_id
+WHERE l.organization_id = :org_id
+  AND l.bank_transaction_id = :bank_txn_id;
+```
+
+## Common causes
+
+| Cause | Signal | Direction |
+| --- | --- | --- |
+| Plaid re-auth needed | `plaid_items.status = login_required` | Have user complete update Link flow |
+| Bank account not mapped to GL | `finance_bank_accounts.gl_account_id` null | Map cash account in settings |
+| Pending Plaid txn | `pending = true` | Wait for posted txn; do not force-match |
+| Memorized rule mismatch | Wrong `categorized` JE | Unreconcile, fix rule, recategorize |
+| Duplicate import | Same `source_transaction_id` pattern | Compare amounts/dates; exclude duplicate |
+| Closed cash period | Period `cash_open = false` | Reopen module or move date with approval |
+
+## Remediation
+
+<Steps>
+  <Step title="Fix connection first">
+    If Plaid status is not `active`, resolve Link update / disconnect-reconnect before matching.
+  </Step>
+  <Step title="Confirm GL mapping">
+    Ensure `finance_bank_accounts.gl_account_id` points at the correct cash account.
+  </Step>
+  <Step title="Use product actions">
+    Prefer edge functions / UI: suggest matches → confirm match, categorize, apply payment, exclude, unreconcile.
+  </Step>
+  <Step title="Unreconcile carefully">
+    `unreconcile-transaction` only when the linked JE is understood and period allows reversal.
+  </Step>
+</Steps>
+
+## Escalate when
+
+- Posted JE amounts disagree with bank txn and applications look corrupted
+- Mass duplicate transactions after a sync (possible cursor issue)
+- Need to rewrite `plaid_items.transactions_cursor`
+
+## Related
+
+- [Plaid integration](/integrations/plaid)
+- [Bank domain tables](/data-model/bank)
+- [Bank transaction trace](/data-model/transaction-traces#bank-reconciliation)

@@ -1,0 +1,280 @@
+---
+title: "Integrations"
+description: "Data connections, cart/Trackstar sync, carrier connections, and webhooks."
+---
+
+Data connections, cart/Trackstar sync, carrier connections, and webhooks.
+
+<Info>Source: live Postgres `public` schema on project `linqdstukqayvducxguc`. Captured for docs scaffolding.</Info>
+
+## Tables
+
+| Table | Columns | Outbound FKs |
+| --- | ---: | ---: |
+| [`carrier_connections`](#carrier-connections) | 8 | 1 |
+| [`cart_channel_maps`](#cart-channel-maps) | 13 | 2 |
+| [`cart_ingest_exceptions`](#cart-ingest-exceptions) | 21 | 3 |
+| [`cart_integration_activity`](#cart-integration-activity) | 9 | 3 |
+| [`cart_integration_settings`](#cart-integration-settings) | 5 | 3 |
+| [`data_connections`](#data-connections) | 14 | 1 |
+| [`trackstar_cart_reconciliation_cursors`](#trackstar-cart-reconciliation-cursors) | 11 | 2 |
+| [`trackstar_initial_sync_watchdog`](#trackstar-initial-sync-watchdog) | 10 | 2 |
+| [`trackstar_inventory_sync_outbox`](#trackstar-inventory-sync-outbox) | 11 | 3 |
+| [`webhook_events`](#webhook-events) | 13 | 1 |
+
+## `carrier_connections`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `carrier` | `text` | NO | — |
+| `nickname` | `text` | YES | — |
+| `status` | `text` | NO | 'active'::text |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `easypost_carrier_account_id` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `carrier_connections_organization_id_fkey` |
+
+## `cart_channel_maps`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `data_connection_id` | `uuid` | NO | — |
+| `map_type` | `text` | NO | — |
+| `source_key` | `text` | NO | — |
+| `source_label` | `text` | YES | — |
+| `suggested_target_id` | `text` | YES | — |
+| `confirmed_target_id` | `text` | YES | — |
+| `status` | `text` | NO | 'unmapped'::text |
+| `flag_reason` | `text` | YES | — |
+| `is_catch_all` | `boolean` | NO | false |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `data_connection_id` | `data_connections.id` | `cart_channel_maps_data_connection_id_fkey` |
+| `organization_id` | `organizations.id` | `cart_channel_maps_organization_id_fkey` |
+
+## `cart_ingest_exceptions`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `data_connection_id` | `uuid` | NO | — |
+| `webhook_event_id` | `uuid` | YES | — |
+| `external_connection_id` | `text` | NO | — |
+| `event_type` | `text` | NO | — |
+| `external_order_id` | `text` | YES | — |
+| `stage` | `text` | NO | — |
+| `payload` | `jsonb` | NO | '{}'::jsonb |
+| `reason` | `text` | NO | — |
+| `error` | `jsonb` | YES | — |
+| `status` | `text` | NO | 'pending'::text |
+| `retry_count` | `integer` | NO | 0 |
+| `next_retry_at` | `timestamptz` | YES | — |
+| `last_attempted_at` | `timestamptz` | YES | — |
+| `resolved_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `map_type` | `text` | YES | — |
+| `source_key` | `text` | YES | — |
+| `dedupe_key` | `text` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `data_connection_id` | `data_connections.id` | `cart_ingest_exceptions_data_connection_id_fkey` |
+| `organization_id` | `organizations.id` | `cart_ingest_exceptions_organization_id_fkey` |
+| `webhook_event_id` | `webhook_events.id` | `cart_ingest_exceptions_webhook_event_id_fkey` |
+
+## `cart_integration_activity`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `data_connection_id` | `uuid` | NO | — |
+| `event_type` | `text` | NO | — |
+| `event` | `text` | NO | — |
+| `actor_id` | `text` | YES | — |
+| `metadata` | `jsonb` | NO | '{}'::jsonb |
+| `reverses_activity_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `data_connection_id` | `data_connections.id` | `cart_integration_activity_data_connection_id_fkey` |
+| `organization_id` | `organizations.id` | `cart_integration_activity_organization_id_fkey` |
+| `reverses_activity_id` | `cart_integration_activity.id` | `cart_integration_activity_reverses_activity_id_fkey` |
+
+## `cart_integration_settings`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `organization_id` | `uuid` | NO | — |
+| `data_connection_id` | `uuid` | NO | — |
+| `default_customer_group_id` | `uuid` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `data_connection_id` | `data_connections.id` | `cart_integration_settings_data_connection_id_fkey` |
+| `default_customer_group_id` | `ar_customer_groups.id` | `cart_integration_settings_default_customer_group_id_fkey` |
+| `organization_id` | `organizations.id` | `cart_integration_settings_organization_id_fkey` |
+
+## `data_connections`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | current_org_id() |
+| `provider` | `text` | NO | — |
+| `system` | `text` | NO | — |
+| `integration_type` | `text` | NO | — |
+| `external_connection_id` | `text` | NO | — |
+| `access_token_ref` | `text` | NO | — |
+| `available_actions` | `jsonb` | YES | — |
+| `status` | `text` | NO | — |
+| `sync_status` | `jsonb` | NO | '{}'::jsonb |
+| `connected_at` | `timestamptz` | YES | — |
+| `disconnected_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `data_connections_organization_id_fkey` |
+
+## `trackstar_cart_reconciliation_cursors`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `data_connection_id` | `uuid` | NO | — |
+| `resource` | `text` | NO | — |
+| `last_updated_date` | `timestamptz` | YES | — |
+| `page_token` | `text` | YES | — |
+| `last_success_at` | `timestamptz` | YES | — |
+| `last_error` | `text` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+| `in_progress_max_updated_date` | `timestamptz` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `data_connection_id` | `data_connections.id` | `trackstar_cart_reconciliation_cursors_data_connection_id_fkey` |
+| `organization_id` | `organizations.id` | `trackstar_cart_reconciliation_cursors_organization_id_fkey` |
+
+## `trackstar_initial_sync_watchdog`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `data_connection_id` | `uuid` | NO | — |
+| `resources` | `jsonb` | NO | jsonb_build_object('products', jsonb_... |
+| `next_check_at` | `timestamptz` | YES | — |
+| `check_count` | `integer` | NO | 0 |
+| `exception_raised_at` | `timestamptz` | YES | — |
+| `completed_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `data_connection_id` | `data_connections.id` | `trackstar_initial_sync_watchdog_data_connection_id_fkey` |
+| `organization_id` | `organizations.id` | `trackstar_initial_sync_watchdog_organization_id_fkey` |
+
+## `trackstar_inventory_sync_outbox`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | NO | — |
+| `fulfillment_id` | `uuid` | NO | — |
+| `sales_order_id` | `uuid` | NO | — |
+| `status` | `text` | NO | 'pending'::text |
+| `attempt_count` | `integer` | NO | 0 |
+| `last_error` | `text` | YES | — |
+| `next_attempt_at` | `timestamptz` | YES | — |
+| `processed_at` | `timestamptz` | YES | — |
+| `created_at` | `timestamptz` | NO | now() |
+| `updated_at` | `timestamptz` | NO | now() |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `fulfillment_id` | `fulfillments.id` | `trackstar_inventory_sync_outbox_fulfillment_id_fkey` |
+| `organization_id` | `organizations.id` | `trackstar_inventory_sync_outbox_organization_id_fkey` |
+| `sales_order_id` | `sales_orders.id` | `trackstar_inventory_sync_outbox_sales_order_id_fkey` |
+
+## `webhook_events`
+
+### Columns
+
+| Column | Type | Nullable | Default |
+| --- | --- | --- | --- |
+| `id` | `uuid` | NO | gen_random_uuid() |
+| `organization_id` | `uuid` | YES | — |
+| `user_id` | `uuid` | YES | — |
+| `source` | `text` | NO | — |
+| `event_type` | `text` | NO | — |
+| `external_id` | `text` | YES | — |
+| `payload_hash` | `text` | NO | — |
+| `payload` | `jsonb` | NO | — |
+| `signature_verified` | `boolean` | NO | false |
+| `status` | `text` | NO | 'received'::text |
+| `error` | `jsonb` | YES | — |
+| `received_at` | `timestamptz` | NO | now() |
+| `processed_at` | `timestamptz` | YES | — |
+
+### Foreign keys
+
+| Column | References | Constraint |
+| --- | --- | --- |
+| `organization_id` | `organizations.id` | `webhook_events_organization_id_fkey` |
+
