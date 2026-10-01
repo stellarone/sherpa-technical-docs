@@ -1,11 +1,11 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Sherpa Support Docs",
+  "theme": "maple",
+  "name": "Sherpa Technical Docs",
   "colors": {
-    "primary": "#0F766E",
-    "light": "#2DD4BF",
-    "dark": "#115E59"
+    "primary": "#6345E8",
+    "light": "#A78AFF",
+    "dark": "#3E1AD1"
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -80,8 +80,9 @@
       }
     ],
     "primary": {
-      "type": "github",
-      "href": "https://github.com/stellarone/sherpa-technical-docs"
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://sherpa-topaz.vercel.app/"
     }
   },
   "contextual": {
@@ -90,8 +91,25 @@
       "view",
       "chatgpt",
       "claude",
-      "cursor"
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
     ]
+  },
+  "background": {
+    "color": {
+      "light": "#F2F1F6",
+      "dark": "#160B2D"
+    }
+  },
+  "fonts": {
+    "family": "Poppins"
+  },
+  "thumbnails": {
+    "fonts": {
+      "family": "Poppins"
+    }
   },
   "footer": {
     "socials": {
