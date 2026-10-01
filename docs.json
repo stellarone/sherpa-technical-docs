@@ -42,7 +42,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "href": "https://sherpa-topaz.vercel.app/"
     }
   },
   "contextual": {
