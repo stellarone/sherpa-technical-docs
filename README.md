@@ -1,6 +1,6 @@
-# Sherpa Support Docs
+# adorabl Support Docs
 
-Internal Mintlify documentation for Sherpa support engineers.
+Internal Mintlify documentation for adorabl support engineers.
 
 ## Contents
 

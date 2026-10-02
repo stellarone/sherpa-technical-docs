@@ -1,9 +1,9 @@
 ---
 title: "Orientation"
-description: "What Sherpa is, who it serves, and how support should approach tickets."
+description: "What adorabl is, who it serves, and how support should approach tickets."
 ---
 
-Sherpa is Stellar One's multi-tenant ERP for mid-market operators. It covers finance (AR, AP, GL, bank reconciliation), inventory and warehouses, sales order fulfillment, and commerce/carrier integrations.
+adorabl is Stellar One's multi-tenant ERP for mid-market operators. It covers finance (AR, AP, GL, bank reconciliation), inventory and warehouses, sales order fulfillment, and commerce/carrier integrations.
 
 ## Who you help
 
@@ -53,7 +53,7 @@ flowchart TB
 ## Tenancy model
 
 - Every operational row is scoped by `organization_id`.
-- Clerk orgs map to Sherpa orgs through `clerk_org_map`.
+- Clerk orgs map to adorabl orgs through `clerk_org_map`.
 - RLS and `SECURITY DEFINER` RPCs enforce org guards — do not bypass them from the client.
 - Edge functions often accept org context from authenticated Clerk claims.
 
@@ -61,7 +61,7 @@ flowchart TB
 
 | Layer | Where to look |
 | --- | --- |
-| App UI | Deployed Sherpa frontend (Clerk-authenticated) |
+| App UI | Deployed adorabl frontend (Clerk-authenticated) |
 | Database | Supabase project `linqdstukqayvducxguc` |
 | Edge functions | Supabase Functions (Plaid, bank rec, AR pay links, DocuSign, etc.) |
 | Secrets | Supabase Vault references — never read raw values into tickets |
@@ -70,7 +70,7 @@ flowchart TB
 
 <Steps>
   <Step title="Identify the org">
-    Confirm Clerk org / Sherpa `organizations.id` / slug before querying.
+    Confirm Clerk org / adorabl `organizations.id` / slug before querying.
   </Step>
   <Step title="Classify the domain">
     Bank, AP, AR, GL, inventory, or integrations — open the matching runbook.
