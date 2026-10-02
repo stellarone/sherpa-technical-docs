@@ -1,13 +1,13 @@
 ---
 title: "Systems map"
-description: "How Sherpa app, Supabase, Clerk, and third-party services connect."
+description: "How adorabl app, Supabase, Clerk, and third-party services connect."
 ---
 
 ## Architecture at a glance
 
 ```mermaid
 flowchart LR
-  User[Browser user] --> App[Sherpa app]
+  User[Browser user] --> App[adorabl app]
   App --> Clerk[Clerk auth]
   App --> SB[Supabase API]
   SB --> PG[(Postgres + RLS)]

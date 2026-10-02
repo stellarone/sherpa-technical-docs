@@ -5,7 +5,7 @@ description: "Cart ingest, channel mapping, and inventory sync via Trackstar."
 
 ## What it does
 
-Trackstar bridges commerce carts (notably Shopify) into Sherpa sales orders, channel settings, fulfillment handoff, and inventory availability sync.
+Trackstar bridges commerce carts (notably Shopify) into adorabl sales orders, channel settings, fulfillment handoff, and inventory availability sync.
 
 ## Live objects
 
@@ -58,7 +58,7 @@ Priority fields on `cart_ingest_exceptions`:
 
 | Ask | Where to look |
 | --- | --- |
-| Order missing in Sherpa | Open exceptions + webhook events + connection status |
+| Order missing in adorabl | Open exceptions + webhook events + connection status |
 | Wrong customer group | `cart_integration_settings.default_customer_group_id` |
 | Inventory not updating on Shopify | Outbox rows + item SKU mapping |
 | Prepaid order not invoiced | Cart recognition RPCs + AR invoice `source` |

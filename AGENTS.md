@@ -2,7 +2,7 @@
 
 ## About this project
 
-- Internal Mintlify docs for **Sherpa** support
+- Internal Mintlify docs for **adorabl** support
 - Pages are MDX with YAML frontmatter
 - Configuration lives in `docs.json`
 - Source app: https://github.com/stellarone/sherpa-e9c75a24
